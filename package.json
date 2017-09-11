@@ -1,0 +1,18 @@
+{
+  "name": "club_bieres_server",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "start": "node app.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://gitlab.uttnetgroup.fr/aprudhomme/club_bieres_server.git"
+  },
+  "author": "prudywsh",
+  "license": "ISC",
+  "dependencies": {
+    "express": "^4.15.4"
+  }
+}
