@@ -1,4 +1,5 @@
 const routes = require('express').Router();
+<<<<<<< HEAD
 const https = require('https');
 
 const EtuUTTService = require('../services/EtuUTTService.js');
