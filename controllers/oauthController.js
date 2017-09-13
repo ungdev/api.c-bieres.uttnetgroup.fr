@@ -1,17 +1,11 @@
-const routes = require('express').Router();
-
-const https = require('https');
-
 const EtuUTTService = require('../services/EtuUTTService.js');
 
-routes.get("/etuutt/link", (req, res) => {
-
+exports.getLink = function(req, res) {
     const redirectUri = EtuUTTService().oauthAuthorize();
-
     res.status(200).json({ redirectUri });
-});
+};
 
-routes.post("/etuutt/callback", (req, res) => {
+exports.callback = function(req, res) {
 
     if (!req.body.authorization_code) {
         res.status(400).json({ message: "missing authorization code" })
@@ -34,6 +28,4 @@ routes.post("/etuutt/callback", (req, res) => {
         return res.status(500).json({ message: "An error occurs during communications with the api of EtuUTT: " + error});
     })
 
-});
-
-module.exports = routes;
+};

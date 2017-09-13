@@ -1,17 +1,22 @@
 require('dotenv').config();
 
+const mongoose = require('mongoose');
+const Event = require('./models/Event');
+
 const express = require('express');
 const app = express();
 const cors = require('cors');
 const bodyParser = require('body-parser')
 
-const oauthRoutes = require('./routes/oauth');
+mongoose.Promise = global.Promise;
+mongoose.connect(`mongodb://${process.env.DB_HOST}/${process.env.DB_NAME}`);
 
 app.use(cors());
 app.use(bodyParser.urlencoded({ extended: false }))
 app.use(bodyParser.json())
 
-app.use('/api/oauth', oauthRoutes);
+const routes = require('./routes/routes');
+routes(app);
 
 app.listen(3000, function () {
   console.log('Server listening on port 3000!');
