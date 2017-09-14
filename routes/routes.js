@@ -7,6 +7,8 @@ module.exports = function(app) {
     app.route('/api/event')
         .get(eventController.get)
         .post(eventController.create);
+    app.route('/api/event/next')
+        .get(eventController.getNext);
     app.route('/api/event/:id')
         .get(eventController.getById)
         .put(eventController.update)
