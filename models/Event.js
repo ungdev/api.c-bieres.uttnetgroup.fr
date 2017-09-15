@@ -9,7 +9,11 @@ const EventSchema = new Schema({
     when: {
         type: Date,
         required: true
-    }
+    },
+    beers: [{
+        type: Schema.Types.ObjectId,
+        ref: 'Beer' 
+    }]
 });
 
 module.exports = mongoose.model('Event', EventSchema);

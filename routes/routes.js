@@ -1,4 +1,5 @@
 const eventController = require('../controllers/eventController');
+const beerController = require('../controllers/beerController');
 const oauthController = require('../controllers/oauthController');
 
 module.exports = function(app) {
@@ -13,6 +14,15 @@ module.exports = function(app) {
         .get(eventController.getById)
         .put(eventController.update)
         .delete(eventController.delete);
+
+    // beer routes
+    app.route('/api/beer')
+        .get(beerController.get)
+        .post(beerController.create);
+    app.route('/api/beer/:id')
+        .get(beerController.getById)
+        .put(beerController.update)
+        .delete(beerController.delete);
 
     // oauth routes
     app.route('/api/etuutt/link')

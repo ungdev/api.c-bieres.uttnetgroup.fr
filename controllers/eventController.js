@@ -10,7 +10,7 @@ exports.get = function(req, res) {
 };
 
 exports.getById = function(req, res) {
-    Event.findById(req.params.id, (err, event) => {
+    Event.findById(req.params.id).populate('beers').exec((err, event) => {
         if (err)
             res.status(400).json(err);
         res.json(event);
