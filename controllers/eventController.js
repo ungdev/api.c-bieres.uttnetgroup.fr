@@ -18,7 +18,7 @@ exports.getById = function(req, res) {
 };
 
 exports.getNext = function(req, res) {
-    Event.find({ when: {$gt: new Date()} }).sort({when: 'asc'}).limit(1).exec((err, events) => {
+    Event.find({ when: {$gt: new Date()} }).populate('beers').sort({when: 'asc'}).limit(1).exec((err, events) => {
         if (err)
             res.status(400).json(err);
         res.json(events[0]);

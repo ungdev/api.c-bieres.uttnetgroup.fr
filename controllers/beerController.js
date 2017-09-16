@@ -1,5 +1,6 @@
 const mongoose = require('mongoose');
 const Beer = mongoose.model('Beer');
+const Event = mongoose.model('Event');
 
 exports.get = function(req, res) {
     Beer.find({}, (err, beer) => {
@@ -22,7 +23,12 @@ exports.create = function(req, res) {
     newBeer.save((err, beer) => {
         if (err)
             res.status(400).json(err);
-        res.json(beer);
+        Event.findById(beer.event_id).exec((err, event) => {
+            event.beers.push(beer);
+            event.save(err => {
+                res.json(beer);
+            });
+        });
     });
 };
 
@@ -35,9 +41,16 @@ exports.update = function(req, res) {
 };
 
 exports.delete = function(req, res) {
-    Beer.remove({_id: req.params.id}, (err, beer) => {
+
+    Beer.findById(req.params.id).exec((err, beer) => {
         if (err)
             res.status(400).json(err);
-        res.json({ message: "Bière supprimé" });
+        Event.findById(beer.event_id).exec((err, event) => {
+            event.beers = event.beers.filter(id => id != beer._id);
+            event.save(err => {
+                beer.remove();
+                res.json();
+            });
+        });
     });
 };
