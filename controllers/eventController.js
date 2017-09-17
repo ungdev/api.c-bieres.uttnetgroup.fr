@@ -28,6 +28,7 @@ function getNextEvent() {
  */
 function registerDrinker(event, drinker) {
     return new Promise((resolve, reject) => {
+
         event.drinkers.push(drinker);
         event.save((err, savedEvent) => {
             if (err)
@@ -67,26 +68,30 @@ exports.register = function(req, res) {
                 }
 
                 // get the drinker, by student id (unique)
-                Drinker.findOne({ studentId: etuUTTUser.data.studentId })
+                Drinker.findOne({ studentId: String(etuUTTUser.data.studentId) })
                     .then(drinker => {
 
                         // if exists, register him to the event
                         if (drinker) {
+                            // if already registered, return error
+                            if (event.drinkers.filter(id => String(id) == String(drinker._id)).length)
+                                res.status(409).json({ message: "Tu es déjà inscris !" });
+
                             registerDrinker(event, drinker)
                                 .then(_ => res.status(200).json({ message: `${etuUTTUser.data.studentId} inscrit` }))
                                 .catch(err => res.status(500).json(err));
+                        } else {
+                            // else, store it before
+                            const newDrinker = new Drinker(etuUTTUser.data);
+                            newDrinker.save((err, drinker) => {
+                                if (err)
+                                    res.status(400).json(err);
+
+                                registerDrinker(event, drinker)
+                                    .then(_ => res.status(200).json({ message: `${etuUTTUser.data.studentId} inscrit` }))
+                                    .catch(err => res.status(500).json(err));
+                            });
                         }
-
-                        // else, store it before
-                        const newDrinker = new Drinker(etuUTTUser.data);
-                        newDrinker.save((err, drinker) => {
-                            if (err)
-                                res.status(400).json(err);
-
-                            registerDrinker(event, drinker)
-                                .then(_ => res.status(200).json({ message: `${etuUTTUser.data.studentId} inscrit` }))
-                                .catch(err => res.status(500).json(err));
-                        });
                     });
 
 
@@ -105,7 +110,7 @@ exports.get = function(req, res) {
 };
 
 exports.getById = function(req, res) {
-    Event.findById(req.params.id).populate('beers').exec((err, event) => {
+    Event.findById(req.params.id).populate('beers', 'drinkers').exec((err, event) => {
         if (err)
             res.status(400).json(err);
         res.json(event);
