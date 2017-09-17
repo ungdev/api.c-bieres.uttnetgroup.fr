@@ -12,7 +12,11 @@ const EventSchema = new Schema({
     },
     beers: [{
         type: Schema.Types.ObjectId,
-        ref: 'Beer' 
+        ref: 'Beer'
+    }],
+    drinkers: [{
+        type: Schema.Types.ObjectId,
+        ref: 'Drinker' 
     }]
 });
 

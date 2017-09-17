@@ -10,6 +10,8 @@ module.exports = function(app) {
         .post(eventController.create);
     app.route('/api/event/next')
         .get(eventController.getNext);
+    app.route('/api/event/next/register')
+        .post(eventController.register);
     app.route('/api/event/:id')
         .get(eventController.getById)
         .put(eventController.update)
@@ -25,8 +27,8 @@ module.exports = function(app) {
         .delete(beerController.delete);
 
     // oauth routes
-    app.route('/api/etuutt/link')
+    app.route('/api/oauth/etuutt/link')
         .get(oauthController.getLink);
-    app.route('/api/etuutt/callback')
+    app.route('/api/oauth/etuutt/callback')
         .post(oauthController.callback);
 };

@@ -3,6 +3,7 @@ require('dotenv').config();
 const mongoose = require('mongoose');
 const Event = require('./models/Event');
 const Beer = require('./models/Beer');
+const Drinker = require('./models/Drinker');
 
 const express = require('express');
 const app = express();
