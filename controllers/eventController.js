@@ -44,6 +44,79 @@ function registerDrinker(event, drinker) {
     });
 }
 
+/**
+ * Given an Event remove the given drinker,
+ * register the drinker to the Event
+ *
+ * @param {Event}
+ * @param {Drinker}
+ * @return {Promise}
+ */
+function unregisterDrinker(event, drinker) {
+    return new Promise((resolve, reject) => {
+
+        event.drinkers = event.drinkers.filter(id => String(id) !== String(drinker._id))
+        event.save((err, savedEvent) => {
+            if (err)
+                reject(err);
+
+            drinker.events = drinker.events.filter(id => String(id) !== String(savedEvent._id))
+            drinker.save((err, savedDrinker) => {
+                if (err)
+                    reject(err);
+                resolve();
+            });
+        });
+    });
+};
+
+exports.unregister = function(req, res) {
+    if (!req.body.authorization_code) {
+        res.status(400).json({ message: "missing authorization code" })
+    }
+
+    let EtuUTT = EtuUTTService();
+    let tokenObj;
+
+    // check if the code is valid
+    EtuUTT.oauthTokenByAuthCode(req.body.authorization_code)
+    .then((data) => {
+        tokenObj = data;
+        // get the user's data
+        return EtuUTT.publicUserAccount();
+    })
+    .then((etuUTTUser) => {
+        // get the next event
+        getNextEvent()
+            .then(event => {
+                if (!event) {
+                    res.status(404).json({ message: "Aucun évènement n'est prévu prochainement" });
+                }
+
+                // get the drinker, by student id (unique)
+                Drinker.findOne({ studentId: String(etuUTTUser.data.studentId) })
+                    .then(drinker => {
+
+                        // if exists, unregister him to the event
+                        if (drinker) {
+                            // if not registered, return 204 ? (nothing to unregister)
+                            if (event.drinkers.filter(id => String(id) == String(drinker._id)).length === 0)
+                                res.status(204).json({ message: "Tu n'es pas inscrit." });
+
+                            unregisterDrinker(event, drinker)
+                                .catch(err => res.status(500).json(err))
+                                .then(_ => res.status(200).json({event}));
+                        }
+
+                        res.status(204).json({ message: "Tu n'es pas inscrit." });
+                    });
+
+            })
+            .catch(err => res.status(500).json(err));
+    })
+    .catch(error => res.status(500).json({ message: "An error occurs during communications with the api of EtuUTT: " + error }))
+};
+
 exports.register = function(req, res) {
     if (!req.body.authorization_code) {
         res.status(400).json({ message: "missing authorization code" })
@@ -78,7 +151,7 @@ exports.register = function(req, res) {
                                 res.status(409).json({ message: "Tu es déjà inscris !" });
 
                             registerDrinker(event, drinker)
-                                .then(_ => res.status(200).json({ message: `${etuUTTUser.data.studentId} inscrit` }))
+                                .then(_ => res.status(200).json({event}))
                                 .catch(err => res.status(500).json(err));
                         } else {
                             // else, store it before
@@ -88,7 +161,7 @@ exports.register = function(req, res) {
                                     res.status(400).json(err);
 
                                 registerDrinker(event, drinker)
-                                    .then(_ => res.status(200).json({ message: `${etuUTTUser.data.studentId} inscrit` }))
+                                    .then(_ => res.status(200).json({event}))
                                     .catch(err => res.status(500).json(err));
                             });
                         }
