@@ -183,7 +183,7 @@ exports.get = function(req, res) {
 };
 
 exports.getById = function(req, res) {
-    Event.findById(req.params.id).populate('beers', 'drinkers').exec((err, event) => {
+    Event.findById(req.params.id).populate(['beers', 'drinkers']).exec((err, event) => {
         if (err)
             res.status(500).json(err);
         if (!event)
