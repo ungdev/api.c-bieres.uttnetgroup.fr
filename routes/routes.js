@@ -1,8 +1,16 @@
 const eventController = require('../controllers/eventController');
 const beerController = require('../controllers/beerController');
 const oauthController = require('../controllers/oauthController');
+const adminController = require('../controllers/adminController');
 
 module.exports = function(app) {
+
+    // admin routes
+    app.route('/api/admin')
+        .get(adminController.get)
+        .post(adminController.create);
+    app.route('/api/admin/:id')
+        .delete(adminController.delete);
 
     // event routes
     app.route('/api/event')

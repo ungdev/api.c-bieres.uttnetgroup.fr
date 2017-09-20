@@ -17,12 +17,7 @@ exports.callback = function(req, res) {
     EtuUTT.oauthTokenByAuthCode(req.body.authorization_code)
     .then((data) => {
         tokenObj = data;
-        return EtuUTT.publicUserAccount();
-    })
-    .then((etuUTTUser) => {
-        // TODO : inscription à l'event
-
-        res.status(200).json({ data: etuUTTUser.data });
+        res.status(200).json(tokenObj.access_token);
     })
     .catch((error) => {
         return res.status(500).json({ message: "An error occurs during communications with the api of EtuUTT: " + error});

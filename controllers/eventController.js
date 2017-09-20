@@ -175,17 +175,19 @@ exports.register = function(req, res) {
 };
 
 exports.get = function(req, res) {
-    Event.find({}, (err, event) => {
+    Event.find({}, (err, events) => {
         if (err)
-            res.status(400).json(err);
-        res.json(event);
+            res.status(500).json(err);
+        res.json(events);
     });
 };
 
 exports.getById = function(req, res) {
     Event.findById(req.params.id).populate('beers', 'drinkers').exec((err, event) => {
         if (err)
-            res.status(400).json(err);
+            res.status(500).json(err);
+        if (!event)
+            res.status(404).json(err);
         res.json(event);
     });
 };
@@ -200,7 +202,7 @@ exports.create = function(req, res) {
     const newEvent = new Event(req.body);
     newEvent.save((err, event) => {
         if (err)
-            res.status(400).json(err);
+            res.status(500).json(err);
         res.json(event);
     });
 };
@@ -208,7 +210,7 @@ exports.create = function(req, res) {
 exports.update = function(req, res) {
     Event.findOneAndUpdate({_id: req.params.id}, req.body, {new: true}, (err, event) => {
         if (err)
-            res.status(400).json(err);
+            res.status(500).json(err);
         res.json(event);
     });
 };
@@ -216,7 +218,7 @@ exports.update = function(req, res) {
 exports.delete = function(req, res) {
     Event.remove({_id: req.params.id}, (err, event) => {
         if (err)
-            res.status(400).json(err);
+            res.status(500).json(err);
         res.json({ message: "Évènement supprimé" });
     });
 };
