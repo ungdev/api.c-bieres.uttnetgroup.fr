@@ -11,6 +11,10 @@ const app = express();
 const cors = require('cors');
 
 const multer = require('multer');
+const bodyParser = require('body-parser');
+
+mongoose.Promise = global.Promise;
+mongoose.connect(`mongodb://${process.env.DB_HOST}/${process.env.DB_NAME}`);
 
 const storage = multer.diskStorage({
   	destination: process.env.UPLOAD_PATH,
@@ -20,8 +24,7 @@ const storage = multer.diskStorage({
 });
 const upload = multer({ storage });
 
-mongoose.Promise = global.Promise;
-mongoose.connect(`mongodb://${process.env.DB_HOST}/${process.env.DB_NAME}`);
+app.use(bodyParser.json());
 
 app.use(cors());
 app.use(express.static('public'));
