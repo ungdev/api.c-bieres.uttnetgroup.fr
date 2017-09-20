@@ -2,6 +2,8 @@ const mongoose = require('mongoose');
 const Beer = mongoose.model('Beer');
 const Event = mongoose.model('Event');
 
+const fileHelper = require('../helpers/fileHelper');
+
 exports.get = function(req, res) {
     Beer.find({}, (err, beer) => {
         if (err)
@@ -19,17 +21,23 @@ exports.getById = function(req, res) {
 };
 
 exports.create = function(req, res) {
-    const newBeer = new Beer(req.body);
-    newBeer.save((err, beer) => {
-        if (err)
-            res.status(400).json(err);
-        Event.findById(beer.event_id).exec((err, event) => {
-            event.beers.push(beer);
-            event.save(err => {
-                res.json(beer);
+    // save the uploaded image if uploaded
+    fileHelper.saveUploadedBeerImage(req.file)
+        .then(filename => {
+            const newBeer = new Beer(req.body);
+            newBeer.image = filename;
+            newBeer.save((err, beer) => {
+                if (err)
+                    res.status(400).json(err);
+                Event.findById(beer.event_id).exec((err, event) => {
+                    event.beers.push(beer);
+                    event.save(err => {
+                        res.json(beer)
+                    });
+                });
             });
-        });
-    });
+        })
+        .catch(err => res.status(500).json(err));
 };
 
 exports.update = function(req, res) {

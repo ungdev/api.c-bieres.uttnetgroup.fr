@@ -13,6 +13,9 @@ const BeerSchema = new Schema({
         type: String,
         required: true
     },
+    image: {
+        type: String
+    },
     event_id: {
         type: Schema.Types.ObjectId,
         required: true,
