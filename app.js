@@ -30,12 +30,13 @@ app.use(cors());
 app.use(express.static('public'));
 
 // middlewares to upload beer pictures
+app.put('/api/beer/:id', upload.single('file'), function (req, res, next) {
+	next();
+});
 app.post('/api/beer', upload.single('file'), function (req, res, next) {
 	next();
 });
-app.put('/api/beer', upload.single('file'), function (req, res, next) {
-	next();
-});
+
 
 const routes = require('./routes/routes');
 routes(app);

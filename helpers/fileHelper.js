@@ -11,9 +11,10 @@ exports.saveUploadedBeerImage = function(file) {
     return new Promise((resolve, reject) => {
         if (!file) resolve();
 
-        fs.move(file.path, "public/beers/" + file.originalname, err => {
+        fs.copy(file.path, "public/beers/" + file.originalname, { replace: true },  err => {
             if (err) reject(err);
             resolve("beers/" + file.originalname);
         });
+
     });
 }

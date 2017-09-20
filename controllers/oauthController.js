@@ -7,8 +7,6 @@ exports.getLink = function(req, res) {
 
 exports.callback = function(req, res) {
 
-    console.log(req.body);
-
     if (!req.body.authorization_code) {
         res.status(400).json({ message: "missing authorization code" })
     }

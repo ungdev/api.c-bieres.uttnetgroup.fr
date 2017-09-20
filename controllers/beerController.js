@@ -41,11 +41,16 @@ exports.create = function(req, res) {
 };
 
 exports.update = function(req, res) {
-    Beer.findOneAndUpdate({_id: req.params.id}, req.body, {new: true}, (err, beer) => {
-        if (err)
-            res.status(400).json(err);
-        res.json(beer);
-    });
+    fileHelper.saveUploadedBeerImage(req.file)
+        .then(filename => {
+            req.body.image = filename ? filename : req.body.image;
+            Beer.findOneAndUpdate({_id: req.params.id}, req.body, (err, beer) => {
+                if (err)
+                    res.status(400).json(err);
+                res.json(beer);
+            });
+        })
+        .catch(err => res.status(500).json(err));
 };
 
 exports.delete = function(req, res) {
