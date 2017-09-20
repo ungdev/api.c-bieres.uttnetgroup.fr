@@ -7,7 +7,7 @@ const fs = require('fs.extra');
  * @param {file}
  * @return {Promise}
  */
-exports.saveUploadedBeerImage = function(file) {
+ function saveUploadedBeerImage(file) {
     return new Promise((resolve, reject) => {
         if (!file) resolve();
 
@@ -18,3 +18,29 @@ exports.saveUploadedBeerImage = function(file) {
 
     });
 }
+
+function deleteBeerImage(path) {
+    return new Promise((resolve, reject) => {
+        if (!path) resolve();
+
+        // check if file exists (else, throw an error)
+        fs.exists(path, exists => {
+            if (!exists) resolve();
+
+            fs.unlink("public/" + path, err => {
+                if (err) reject(err);
+                resolve();
+            });
+        });
+    });
+}
+
+function deleteBeerImages(paths) {
+    return new Promise((resolve, reject) => {
+        Promise.all(paths.map(path => deleteBeerImage(path)))
+            .then(_ => resolve())
+            .catch(err => reject(err));
+    });
+}
+
+module.exports = {deleteBeerImages, deleteBeerImage, saveUploadedBeerImage};

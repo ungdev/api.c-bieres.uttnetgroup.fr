@@ -3,6 +3,8 @@ const mongoose = require('mongoose');
 const Event = mongoose.model('Event');
 const Drinker = mongoose.model('Drinker');
 
+const fileHelper = require('../helpers/fileHelper');
+
 /**
  * Make a request to find the next Event from now
  *
@@ -216,9 +218,19 @@ exports.update = function(req, res) {
 };
 
 exports.delete = function(req, res) {
-    Event.remove({_id: req.params.id}, (err, event) => {
+    Event.findById({_id: req.params.id}).populate('beers').exec((err, event) => {
         if (err)
             res.status(500).json(err);
-        res.json({ message: "Évènement supprimé" });
+
+        fileHelper.deleteBeerImages(event.beers.map(beer => beer.image))
+            .then(_ => {
+                event.remove(err => {
+                    if (err)
+                        res.status(500).json(err);
+                    res.status(200).json();
+                });
+
+            })
+            .catch(err => console.log(err));
     });
 };

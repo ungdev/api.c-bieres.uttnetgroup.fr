@@ -58,12 +58,16 @@ exports.delete = function(req, res) {
     Beer.findById(req.params.id).exec((err, beer) => {
         if (err)
             res.status(400).json(err);
-        Event.findById(beer.event_id).exec((err, event) => {
-            event.beers = event.beers.filter(id => id != beer._id);
-            event.save(err => {
-                beer.remove();
-                res.json();
-            });
-        });
+        fileHelper.deleteBeerImage(beer.image)
+            .then(_ => {
+                Event.findById(beer.event_id).exec((err, event) => {
+                    event.beers = event.beers.filter(id => id != beer._id);
+                    event.save(err => {
+                        beer.remove();
+                        res.json();
+                    });
+                });
+            })
+            .catch(err => console.log(err));
     });
 };
