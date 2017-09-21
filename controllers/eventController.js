@@ -150,7 +150,7 @@ exports.register = function(req, res) {
                         if (drinker) {
                             // if already registered, return error
                             if (event.drinkers.filter(id => String(id) == String(drinker._id)).length)
-                                res.status(409).json({ message: "Tu es déjà inscris !" });
+                                res.status(409).json({ event });
 
                             registerDrinker(event, drinker)
                                 .then(_ => res.status(200).json({event}))
