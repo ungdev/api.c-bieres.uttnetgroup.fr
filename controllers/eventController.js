@@ -50,73 +50,68 @@ function registerDrinker(event, drinker) {
  * Given an Event remove the given drinker,
  * register the drinker to the Event
  *
- * @param {Event}
- * @param {Drinker}
- * @return {Promise}
+ * @param {Response} res
+ * @param {string} studentId
  */
-function unregisterDrinker(event, drinker) {
-    return new Promise((resolve, reject) => {
+function unregisterDrinker(res, studentId) {
+    getNextEvent()
+        .then(event => {
+            if (!event) res.status(404).json();
 
-        event.drinkers = event.drinkers.filter(id => String(id) !== String(drinker._id))
-        event.save((err, savedEvent) => {
-            if (err)
-                reject(err);
+            // get the drinker, by student id (unique)
+            Drinker.findOne({ studentId })
+                .then(drinker => {
 
-            drinker.events = drinker.events.filter(id => String(id) !== String(savedEvent._id))
-            drinker.save((err, savedDrinker) => {
-                if (err)
-                    reject(err);
-                resolve();
-            });
-        });
-    });
+                    // if doesn't exists or not in the event, we have nothing to do
+                    if (!drinker || event.drinkers.filter(id => String(id) == String(drinker._id)).length === 0) {
+                        res.status(204).json();
+                    }
+
+                    // else, unregister the drinker
+                    event.drinkers = event.drinkers.filter(id => String(id) !== String(drinker._id))
+                    event.save((err, savedEvent) => {
+                        if (err) res.status(500).json(err);
+
+                        drinker.events = drinker.events.filter(id => String(id) !== String(savedEvent._id))
+                        drinker.save((err, savedDrinker) => {
+                            if (err) res.status(500).json(err);
+                            res.json();
+                        });
+                    });
+
+                });
+        })
+        .catch(err => res.status(500).json(err));
 };
 
 exports.unregister = function(req, res) {
-    if (!req.body.authorization_code) {
-        res.status(400).json({ message: "missing authorization code" })
+    if (!req.body.authorization_code && !req.body.studentId) {
+        res.status(400).json({ message: "missing authorization code or id" });
     }
 
-    let EtuUTT = EtuUTTService();
-    let tokenObj;
+    // if unregister by studentId, we don't need to use EtuUTT service
+    if (req.body.studentId) {
+        unregisterDrinker(res, req.body.studentId);
+    } else {
+        // else, unregister by authorization_code.
+        // so we need to fetch the user
 
-    // check if the code is valid
-    EtuUTT.oauthTokenByAuthCode(req.body.authorization_code)
-    .then((data) => {
-        tokenObj = data;
-        // get the user's data
-        return EtuUTT.publicUserAccount();
-    })
-    .then((etuUTTUser) => {
-        // get the next event
-        getNextEvent()
-            .then(event => {
-                if (!event) {
-                    res.status(404).json({ message: "Aucun évènement n'est prévu prochainement" });
-                }
+        let EtuUTT = EtuUTTService();
+        let tokenObj;
 
-                // get the drinker, by student id (unique)
-                Drinker.findOne({ studentId: String(etuUTTUser.data.studentId) })
-                    .then(drinker => {
+        // check if the code is valid
+        EtuUTT.oauthTokenByAuthCode(req.body.authorization_code)
+        .then((data) => {
+            tokenObj = data;
+            // get the user's data
+            return EtuUTT.publicUserAccount();
+        })
+        .then((etuUTTUser) => {
+            unregisterDrinker(res, etuUTTUser.data.studentId);
+        })
+        .catch(error => res.status(500).json({ message: "An error occurs during communications with the api of EtuUTT: " + error }))
+    }
 
-                        // if exists, unregister him to the event
-                        if (drinker) {
-                            // if not registered, return 204 ? (nothing to unregister)
-                            if (event.drinkers.filter(id => String(id) == String(drinker._id)).length === 0)
-                                res.status(204).json({ message: "Tu n'es pas inscrit." });
-
-                            unregisterDrinker(event, drinker)
-                                .catch(err => res.status(500).json(err))
-                                .then(_ => res.status(200).json({event}));
-                        }
-
-                        res.status(204).json({ message: "Tu n'es pas inscrit." });
-                    });
-
-            })
-            .catch(err => res.status(500).json(err));
-    })
-    .catch(error => res.status(500).json({ message: "An error occurs during communications with the api of EtuUTT: " + error }))
 };
 
 exports.register = function(req, res) {
