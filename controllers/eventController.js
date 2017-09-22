@@ -31,6 +31,9 @@ function getNextEvent() {
 function registerDrinker(event, drinker) {
     return new Promise((resolve, reject) => {
 
+        // if already registered, nothing to do
+        if (event.drinkers.includes(drinker._id)) return resolve(drinker);
+
         event.drinkers.push(drinker);
         event.save((err, savedEvent) => {
             if (err)
@@ -109,10 +112,32 @@ exports.unregister = function(req, res) {
         .then((etuUTTUser) => {
             unregisterDrinker(res, etuUTTUser.data.studentId);
         })
-        .catch(error => res.status(500).json({ message: "An error occurs during communications with the api of EtuUTT: " + error }))
+        .catch(err => res.status(500).json({ message: "An error occurs during communications with the api of EtuUTT: " + err }))
     }
 
 };
+
+exports.registerById = function(req, res) {
+    if (!req.body.id) {
+        res.status(400).json({ message: "missing id" });
+    }
+
+    // get the next event
+    getNextEvent()
+        .then(event => {
+            if (!event) res.status(404).json({ message: "Aucun évènement n'est prévu prochainement" });
+
+            Drinker.findById(req.body.id).exec((err, drinker) => {
+                if (err) res.status(500).json(err);
+                if (!drinker) res.status(404).json({ message: "Cette personne n'existe pas." });
+
+                registerDrinker(event, drinker)
+                    .then(drinker => res.json(drinker))
+                    .catch(err => res.status(500).json(err));
+            });
+        })
+        .catch(err => res.status(500).json(err));
+}
 
 exports.register = function(req, res) {
     if (!req.body.authorization_code) {
@@ -148,7 +173,7 @@ exports.register = function(req, res) {
                                 res.status(409).json({ event });
 
                             registerDrinker(event, drinker)
-                                .then(_ => res.status(200).json({event}))
+                                .then(_ => res.json({event}))
                                 .catch(err => res.status(500).json(err));
                         } else {
                             // else, store it before
@@ -158,7 +183,7 @@ exports.register = function(req, res) {
                                     res.status(400).json(err);
 
                                 registerDrinker(event, drinker)
-                                    .then(_ => res.status(200).json({event}))
+                                    .then(_ => res.json({event}))
                                     .catch(err => res.status(500).json(err));
                             });
                         }
