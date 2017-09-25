@@ -10,6 +10,10 @@ exports.create = function(req, res) {
         .then(event => {
             if (!event) res.status(404).json();
 
+            if (req.body.studentId == "") {
+                delete req.body.studentId;
+            }
+
             const newDrinker = new Drinker(req.body);
             newDrinker.save((err, drinker) => {
                 if (err) res.status(500).json(err);

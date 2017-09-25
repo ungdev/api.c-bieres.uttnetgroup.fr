@@ -91,7 +91,7 @@ exports.register = function(req, res) {
                         if (drinker) {
                             // if already registered, return error
                             if (event.drinkers.filter(id => String(id) == String(drinker._id)).length)
-                                res.status(409).json({ event });
+                                return res.status(409).json({ event });
 
                             eventHelper.registerDrinker(event, drinker)
                                 .then(_ => res.json({event}))
