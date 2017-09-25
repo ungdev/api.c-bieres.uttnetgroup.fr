@@ -7,13 +7,13 @@ const eventHelper = require('../helpers/eventHelper');
 const fileHelper = require('../helpers/fileHelper');
 
 exports.unregister = function(req, res) {
-    if (!req.body.authorization_code && !req.body.studentId) {
+    if (!req.body.authorization_code && !req.body._id) {
         res.status(400).json({ message: "missing authorization code or id" });
     }
 
     // if unregister by studentId, we don't need to use EtuUTT service
-    if (req.body.studentId) {
-        eventHelper.unregisterDrinker(res, req.body.studentId);
+    if (req.body._id) {
+        eventHelper.unregisterDrinker(res, req.body._id);
     } else {
         // else, unregister by authorization_code.
         // so we need to fetch the user
@@ -29,7 +29,9 @@ exports.unregister = function(req, res) {
             return EtuUTT.publicUserAccount();
         })
         .then((etuUTTUser) => {
-            eventHelper.unregisterDrinker(res, etuUTTUser.data.studentId);
+            Drinker.findOne({ studentId: etuUTTUser.data.studentId })
+                .then(drinker => eventHelper.unregisterDrinker(res, drinker._id))
+                .catch(err => res.status(500).json(err));
         })
         .catch(err => res.status(500).json({ message: "An error occurs during communications with the api of EtuUTT: " + err }))
     }

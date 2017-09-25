@@ -53,13 +53,13 @@ function registerDrinker(event, drinker) {
  * @param {Response} res
  * @param {string} studentId
  */
-function unregisterDrinker(res, studentId) {
-    eventHelper.getNextEvent()
+function unregisterDrinker(res, _id) {
+    getNextEvent()
         .then(event => {
             if (!event) res.status(404).json();
 
             // get the drinker, by student id (unique)
-            Drinker.findOne({ studentId })
+            Drinker.findOne({ _id })
                 .then(drinker => {
 
                     // if doesn't exists or not in the event, we have nothing to do
