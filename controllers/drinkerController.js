@@ -1,7 +1,28 @@
 const mongoose = require('mongoose');
 const Drinker = mongoose.model('Drinker');
 
-// TODO: filter
+const eventHelper = require('../helpers/eventHelper');
+
+exports.create = function(req, res) {
+    // A Drinker is created on the registration for the next event.
+    // So we need to fetch the next event
+    eventHelper.getNextEvent()
+        .then(event => {
+            if (!event) res.status(404).json();
+
+            const newDrinker = new Drinker(req.body);
+            newDrinker.save((err, drinker) => {
+                if (err) res.status(500).json(err);
+
+                eventHelper.registerDrinker(event, drinker)
+                    .then(results => res.json(results))
+                    .catch(err => res.status(500).json(err));
+            });
+
+        })
+        .catch(err => res.status(500).json(err));
+};
+
 exports.get = function(req, res) {
     let where = {};
 

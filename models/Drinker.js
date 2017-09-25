@@ -4,8 +4,8 @@ const Schema = mongoose.Schema;
 const DrinkerSchema = new Schema({
     studentId: {
         type: String,
-        required: true,
-        unique: true
+        unique: true,
+        sparse: true
     },
     firstName: {
         type: String,

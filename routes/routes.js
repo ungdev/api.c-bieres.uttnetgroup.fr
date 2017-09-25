@@ -41,7 +41,8 @@ module.exports = function(app) {
 
     // drinker routes
     app.route('/api/drinker')
-        .get(drinkerController.get);
+        .get(drinkerController.get)
+        .post(drinkerController.create);
 
     // oauth routes
     app.route('/api/oauth/etuutt/link')
