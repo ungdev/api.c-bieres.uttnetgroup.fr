@@ -1,6 +1,5 @@
 const mongoose = require('mongoose');
 const Drinker = mongoose.model('Drinker');
-
 const eventHelper = require('../helpers/eventHelper');
 
 exports.create = function(req, res) {
@@ -31,17 +30,21 @@ exports.get = function(req, res) {
     let where = {};
 
     if (req.query.multifield) {
-        where = {
-            $or: [
-                { lastName: { $regex: new RegExp(req.query.multifield, 'i') } },
-                { firstName: { $regex: new RegExp(req.query.multifield, 'i') } }
-            ]
-        };
+        where['$or'] = [
+            { lastName: { $regex: new RegExp(req.query.multifield, 'i') } },
+            { firstName: { $regex: new RegExp(req.query.multifield, 'i') } }
+        ]
+    }
+
+    if (req.query.event) {
+        where['events'] = { $ne: req.query.event };
     }
 
     Drinker.find(where, (err, drinkers) => {
         if (err)
             res.status(500).json(err);
+
         res.json(drinkers);
     });
+
 };
