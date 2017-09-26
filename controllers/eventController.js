@@ -118,9 +118,10 @@ exports.register = function(req, res) {
 };
 
 exports.get = function(req, res) {
-    Event.find({}, (err, events) => {
+    Event.find().sort(req.query.sort).exec((err, events) => {
         if (err)
             res.status(500).json(err);
+
         res.json(events);
     });
 };
