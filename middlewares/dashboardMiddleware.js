@@ -1,3 +1,5 @@
+const jwtHelper = require('../helpers/jwtHelper');
+
 module.exports = function(req, res, next) {
 
     // this middleware should not be applied to the following routes:
@@ -10,6 +12,12 @@ module.exports = function(req, res, next) {
         return next();
     }
 
-    console.log("middleware");
-    next();
+    const jwt = req.headers.authorization.split(' ')[1];
+    jwtHelper.verify(jwt)
+        .then(payload => {
+            console.log(payload);
+            if (!payload.isAdmin) return res.status(403).json();
+            return next();
+        })
+        .catch(err => res.status(401).json());
 };
