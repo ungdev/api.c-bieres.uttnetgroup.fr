@@ -4,6 +4,11 @@ const Schema = mongoose.Schema;
 const AdminSchema = new Schema({
     studentId: {
         type: String,
+        unique: true,
+        sparse: true
+    },
+    login: {
+        type: String,
         required: true,
         unique: true
     },

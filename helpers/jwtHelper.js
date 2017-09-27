@@ -4,14 +4,14 @@ const Jwt = require('jsonwebtoken');
 module.exports = {
 
     /**
-     *
      * sign - Generate a JWT token
+     * 
      * @param  {EtuUttUser}
      * @param  {Boolean}
      * @return {string}      The generate JWT
      */
     sign: function(etuUttUser, isAdmin) {
-        
+
         return Jwt.sign(
             {
                 studentId: etuUttUser.studentId,
