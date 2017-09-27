@@ -38,7 +38,7 @@ app.post('/api/beer', upload.single('file'), function (req, res, next) {
 });
 
 
-const routes = require('./routes/routes');
+const routes = require('./config/routes');
 routes(app);
 
 app.listen(3000, function () {

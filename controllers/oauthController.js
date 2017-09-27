@@ -1,4 +1,5 @@
 const EtuUTTService = require('../services/EtuUTTService.js');
+const jwtHelper = require('../helpers/jwtHelper');
 
 exports.getLink = function(req, res) {
     const redirectUri = EtuUTTService().oauthAuthorize();
@@ -17,7 +18,11 @@ exports.callback = function(req, res) {
     EtuUTT.oauthTokenByAuthCode(req.body.authorization_code)
     .then((data) => {
         tokenObj = data;
-        res.status(200).json(tokenObj.access_token);
+        // get the user's data
+        return EtuUTT.publicUserAccount();
+    })
+    .then((etuUTTUser) => {
+        res.status(200).json(jwtHelper.sign(etuUTTUser.data, true));
     })
     .catch((error) => {
         return res.status(500).json({ message: "An error occurs during communications with the api of EtuUTT: " + error});
