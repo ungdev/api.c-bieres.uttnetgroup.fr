@@ -4,7 +4,11 @@ const oauthController = require('../controllers/oauthController');
 const adminController = require('../controllers/adminController');
 const drinkerController = require('../controllers/drinkerController');
 
+const dashboardMiddleware = require('../middlewares/dashboardMiddleware');
+
 module.exports = function(app) {
+
+    app.use('/api', dashboardMiddleware);
 
     // admin routes
     app.route('/api/admin')
