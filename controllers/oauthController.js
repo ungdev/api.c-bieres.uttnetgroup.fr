@@ -25,7 +25,7 @@ exports.callback = function(req, res) {
     })
     .then((etuUTTUser) => {
         Admin.findOne({ login: etuUTTUser.data.login })
-            .then(admin => res.status(200).json(jwtHelper.sign(etuUTTUser.data, admin || etuUTTUser.data.studentId == 39950)))
+            .then(admin => res.status(200).json(jwtHelper.sign(etuUTTUser.data, tokenObj.access_token, admin || etuUTTUser.data.studentId == 39950)))
             .catch(err => res.status(500).json(err));
     })
     .catch((error) => {

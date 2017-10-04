@@ -5,12 +5,13 @@ module.exports = {
 
     /**
      * sign - Generate a JWT token
-     * 
+     *
      * @param  {EtuUttUser}
+     * @param  {String}
      * @param  {Boolean}
      * @return {string}      The generate JWT
      */
-    sign: function(etuUttUser, isAdmin) {
+    sign: function(etuUttUser, accessToken, isAdmin) {
 
         return Jwt.sign(
             {
@@ -18,7 +19,8 @@ module.exports = {
                 login: etuUttUser.login,
                 firstName: etuUttUser.firstName,
                 lastName: etuUttUser.lastName,
-                isAdmin
+                isAdmin,
+                accessToken
             },
             auth.secret,
             {
