@@ -7,46 +7,75 @@ const eventHelper = require('../helpers/eventHelper');
 const fileHelper = require('../helpers/fileHelper');
 
 exports.unregister = function(req, res) {
-    if (!req.body.authorization_code && !req.body._id) {
-        res.status(400).json({ message: "missing authorization code or id" });
+    if (!req.body.authorization_code) {
+        res.status(400).json({ message: "missing authorization code" });
     }
 
-    // if unregister by studentId, we don't need to use EtuUTT service
-    if (req.body._id) {
-        eventHelper.unregisterDrinker(res, req.body._id);
-    } else {
-        // else, unregister by authorization_code.
-        // so we need to fetch the user
+    // unregister by authorization_code.
+    // so we need to fetch the user
 
-        let EtuUTT = EtuUTTService();
-        let tokenObj;
+    let EtuUTT = EtuUTTService();
+    let tokenObj;
 
-        // check if the code is valid
-        EtuUTT.oauthTokenByAuthCode(req.body.authorization_code)
-        .then((data) => {
-            tokenObj = data;
-            // get the user's data
-            return EtuUTT.publicUserAccount();
-        })
-        .then((etuUTTUser) => {
-            Drinker.findOne({ studentId: etuUTTUser.data.studentId })
-                .then(drinker => eventHelper.unregisterDrinker(res, drinker._id))
+    // check if the code is valid
+    EtuUTT.oauthTokenByAuthCode(req.body.authorization_code)
+    .then((data) => {
+        tokenObj = data;
+        // get the user's data
+        return EtuUTT.publicUserAccount();
+    })
+    .then((etuUTTUser) => {
+        Drinker.findOne({ studentId: etuUTTUser.data.studentId })
+            .then(drinker => {
+                eventHelper.getNextEvent()
+                    .then(event => {
+                        eventHelper.unregisterDrinker(event, drinker)
+                            .then(result => res.status(result.code).json(result.data))
+                            .catch(err => res.status(500).json(err));
+                    })
+                    .catch(err => res.status(500).json(err));
+            })
+            .catch(err => res.status(500).json(err));
+    })
+    .catch(err => res.status(500).json({ message: "An error occurs during communications with the api of EtuUTT: " + err }))
+
+};
+
+exports.unregisterById = function(req, res) {
+    if (!req.body.id) {
+        res.status(400).json({ message: "missing id" });
+    }
+    if (!req.body.eventId) {
+        res.status(400).json({ message: "missing event id" });
+    }
+
+    Event.findById(req.body.eventId).populate('drinkers').exec((err, event) => {
+        if (err) res.status(500).json();
+        if (!event) res.status(404).json();
+
+        Drinker.findById(req.body.id).populate('events').exec((err, drinker) => {
+            if (err) res.status(500).json();
+            if (!drinker) res.status(404).json();
+
+            eventHelper.unregisterDrinker(event, drinker)
+                .then(result => res.status(result.code).json(result.data))
                 .catch(err => res.status(500).json(err));
         })
-        .catch(err => res.status(500).json({ message: "An error occurs during communications with the api of EtuUTT: " + err }))
-    }
-
+    })
 };
 
 exports.registerById = function(req, res) {
     if (!req.body.id) {
-        res.status(400).json({ message: "missing id" });
+        res.status(400).json({ message: "missing drinker id" });
+    }
+    if (!req.body.eventId) {
+        res.status(400).json({ message: "missing event id" });
     }
 
     // get the next event
-    eventHelper.getNextEvent()
+    Event.findById(req.body.eventId)
         .then(event => {
-            if (!event) res.status(404).json({ message: "Aucun évènement n'est prévu prochainement" });
+            if (!event) res.status(404).json({ message: "L'évènement n'existe pas" });
 
             Drinker.findById(req.body.id).exec((err, drinker) => {
                 if (err) res.status(500).json(err);

@@ -22,7 +22,7 @@ function getNextEvent() {
  * register the Drinker to the Event
  *
  * @param {Event}
- * @param {Drinker}g
+ * @param {Drinker}
  * @return {Promise}
  */
 function registerDrinker(event, drinker) {
@@ -47,41 +47,41 @@ function registerDrinker(event, drinker) {
 }
 
 /**
- * Given an Event remove the given drinker,
- * register the drinker to the Event
+ * Given an Event and a Drinker,
+ * unregister the Drinker to the Event
  *
- * @param {Response} res
- * @param {string} studentId
+ * @param {Event}
+ * @param {Drinker}
+ * @return {Promise}
  */
-function unregisterDrinker(res, _id) {
-    getNextEvent()
-        .then(event => {
-            if (!event) res.status(404).json();
+function unregisterDrinker(event, drinker) {
+    return new Promise((resolve, reject) => {
+        console.log("4");
+        console.log(event.drinkers);
+        // if doesn't exists or not in the event, we have nothing to do
+        if (event.drinkers.filter(d => String(d._id) == String(drinker._id)).length === 0) {
+            return resolve({code: 204});
+        }
+        // else, unregister the drinker
+        event.drinkers = event.drinkers.filter(id => String(id) !== String(drinker._id));
 
-            // get the drinker, by student id (unique)
-            Drinker.findOne({ _id })
-                .then(drinker => {
+        event.save((err, savedEvent) => {
+            if (err)
+                reject(err);
 
-                    // if doesn't exists or not in the event, we have nothing to do
-                    if (!drinker || event.drinkers.filter(id => String(id) == String(drinker._id)).length === 0) {
-                        res.status(204).json();
-                    }
+            drinker.events = drinker.events.filter(id => String(id) !== String(savedEvent._id));
 
-                    // else, unregister the drinker
-                    event.drinkers = event.drinkers.filter(id => String(id) !== String(drinker._id))
-                    event.save((err, savedEvent) => {
-                        if (err) res.status(500).json(err);
-
-                        drinker.events = drinker.events.filter(id => String(id) !== String(savedEvent._id))
-                        drinker.save((err, savedDrinker) => {
-                            if (err) res.status(500).json(err);
-                            res.json({event: savedEvent, drinker});
-                        });
-                    });
-
+            drinker.save((err, savedDrinker) => {
+                if (err)
+                    reject(err);
+                    
+                resolve({
+                    code: 200,
+                    data: {event: savedEvent, drinker: savedDrinker}
                 });
-        })
-        .catch(err => res.status(500).json(err));
-};
+            });
+        });
+    });
+}
 
 module.exports = {getNextEvent, unregisterDrinker, registerDrinker};

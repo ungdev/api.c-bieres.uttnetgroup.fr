@@ -29,6 +29,8 @@ module.exports = function(app) {
         .post(eventController.registerById);
     app.route('/api/event/next/unregister')
         .post(eventController.unregister);
+    app.route('/api/event/next/unregister/id')
+        .post(eventController.unregisterById);
     app.route('/api/event/:id')
         .get(eventController.getById)
         .put(eventController.update)
