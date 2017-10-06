@@ -6,6 +6,13 @@ const Drinker = mongoose.model('Drinker');
 const eventHelper = require('../helpers/eventHelper');
 const fileHelper = require('../helpers/fileHelper');
 
+/**
+ * Unregister a Drinker to the next event with his authorization_code
+ *
+ * @param  {request} req
+ * @param  {response} res
+ * @return {response}
+ */
 exports.unregister = function(req, res) {
     if (!req.body.authorization_code) {
         res.status(400).json({ message: "missing authorization code" });
@@ -41,6 +48,13 @@ exports.unregister = function(req, res) {
 
 };
 
+/**
+ * Unregister a Drinker to a given event by his database id
+ *
+ * @param  {request} req
+ * @param  {response} res
+ * @return {response}
+ */
 exports.unregisterById = function(req, res) {
     if (!req.body.id) {
         res.status(400).json({ message: "missing id" });
@@ -64,6 +78,13 @@ exports.unregisterById = function(req, res) {
     })
 };
 
+/**
+ * Register a Drinker to a given event by his database id
+ *
+ * @param  {request} req
+ * @param  {response} res
+ * @return {response}
+ */
 exports.registerById = function(req, res) {
     if (!req.body.id) {
         res.status(400).json({ message: "missing drinker id" });
@@ -72,7 +93,6 @@ exports.registerById = function(req, res) {
         res.status(400).json({ message: "missing event id" });
     }
 
-    // get the next event
     Event.findById(req.body.eventId)
         .then(event => {
             if (!event) res.status(404).json({ message: "L'évènement n'existe pas" });
@@ -89,6 +109,13 @@ exports.registerById = function(req, res) {
         .catch(err => res.status(500).json(err));
 }
 
+/**
+ * Register a Drinker to the next event by authorization_code
+ *
+ * @param  {request} req
+ * @param  {response} res
+ * @return {response}
+ */
 exports.register = function(req, res) {
     if (!req.body.authorization_code) {
         res.status(400).json({ message: "missing authorization code" })

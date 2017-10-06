@@ -13,9 +13,11 @@ const cors = require('cors');
 const multer = require('multer');
 const bodyParser = require('body-parser');
 
+// connect to BDD
 mongoose.Promise = global.Promise;
 mongoose.connect(`mongodb://${process.env.DB_HOST}/${process.env.DB_NAME}`);
 
+// configure upload path
 const storage = multer.diskStorage({
   	destination: process.env.UPLOAD_PATH,
 	filename(req, file, cb) {
@@ -24,9 +26,11 @@ const storage = multer.diskStorage({
 });
 const upload = multer({ storage });
 
+// middlewares
 app.use(bodyParser.json());
-
 app.use(cors());
+
+// static files
 app.use(express.static('public'));
 
 // middlewares to upload beer pictures
@@ -37,7 +41,7 @@ app.post('/api/beer', upload.single('file'), function (req, res, next) {
 	next();
 });
 
-
+// register api routes
 const routes = require('./config/routes');
 routes(app);
 

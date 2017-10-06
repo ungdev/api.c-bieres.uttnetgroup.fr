@@ -3,11 +3,26 @@ const jwtHelper = require('../helpers/jwtHelper');
 const mongoose = require('mongoose');
 const Admin = mongoose.model('Admin');
 
+/**
+ * Get the oauth redirect link for EtuUTT
+ *
+ * @param  {request} req
+ * @param  {response} res
+ * @return {response}
+ */
 exports.getLink = function(req, res) {
     const redirectUri = EtuUTTService().oauthAuthorize();
-    res.status(200).json({ redirectUri });
+    res.json({ redirectUri });
 };
 
+/**
+ * Handle oauth callback. Check the authorization_code.
+ * If valid, return a JWT with informations about the User
+ *
+ * @param  {request} req
+ * @param  {response} res
+ * @return {response}
+ */
 exports.callback = function(req, res) {
 
     if (!req.body.authorization_code) {

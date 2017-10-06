@@ -12,10 +12,12 @@ module.exports = function(req, res, next) {
         return next();
     }
 
+    // 'authorization': 'Bearer [jwt]', we only want the jwt
     const jwt = req.headers.authorization.split(' ')[1];
+
+    // continue only if the jwt is valid
     jwtHelper.verify(jwt)
         .then(payload => {
-            console.log(payload);
             if (!payload.isAdmin) return res.status(403).json();
             return next();
         })

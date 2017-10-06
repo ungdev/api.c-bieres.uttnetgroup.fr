@@ -19,6 +19,12 @@ const fs = require('fs.extra');
     });
 }
 
+/**
+ * Given a path, delete the image
+ *
+ * @param  {string} path the path of the image to delete
+ * @return {Promise}
+ */
 function deleteBeerImage(path) {
     return new Promise((resolve, reject) => {
         if (!path) resolve();
@@ -35,6 +41,12 @@ function deleteBeerImage(path) {
     });
 }
 
+/**
+ * Given an array of paths, delete the images
+ *
+ * @param  {array} paths the paths of the images to delete
+ * @return {Promise}
+ */
 function deleteBeerImages(paths) {
     return new Promise((resolve, reject) => {
         Promise.all(paths.map(path => deleteBeerImage(path)))
