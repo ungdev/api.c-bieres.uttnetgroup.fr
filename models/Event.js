@@ -8,7 +8,8 @@ const EventSchema = new Schema({
     },
     when: {
         type: Date,
-        required: true
+        required: true,
+        min: new Date
     },
     beers: [{
         type: Schema.Types.ObjectId,
@@ -16,7 +17,7 @@ const EventSchema = new Schema({
     }],
     drinkers: [{
         type: Schema.Types.ObjectId,
-        ref: 'Drinker' 
+        ref: 'Drinker'
     }]
 });
 

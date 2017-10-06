@@ -152,7 +152,7 @@ exports.create = function(req, res) {
 };
 
 exports.update = function(req, res) {
-    Event.findOneAndUpdate({_id: req.params.id}, req.body, {new: true}, (err, event) => {
+    Event.findOneAndUpdate({_id: req.params.id}, req.body, {new: true, runValidators: true }, (err, event) => {
         if (err)
             res.status(500).json(err);
         res.json(event);
