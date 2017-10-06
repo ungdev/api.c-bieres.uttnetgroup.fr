@@ -59,7 +59,7 @@ function unregisterDrinker(event, drinker) {
         console.log("4");
         console.log(event.drinkers);
         // if doesn't exists or not in the event, we have nothing to do
-        if (event.drinkers.filter(d => String(d._id) == String(drinker._id)).length === 0) {
+        if (event.drinkers.filter(id => String(id) == String(drinker._id)).length === 0) {
             return resolve({code: 204});
         }
         // else, unregister the drinker
@@ -74,7 +74,7 @@ function unregisterDrinker(event, drinker) {
             drinker.save((err, savedDrinker) => {
                 if (err)
                     reject(err);
-                    
+
                 resolve({
                     code: 200,
                     data: {event: savedEvent, drinker: savedDrinker}

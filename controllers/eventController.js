@@ -49,11 +49,11 @@ exports.unregisterById = function(req, res) {
         res.status(400).json({ message: "missing event id" });
     }
 
-    Event.findById(req.body.eventId).populate('drinkers').exec((err, event) => {
+    Event.findById(req.body.eventId).exec((err, event) => {
         if (err) res.status(500).json();
         if (!event) res.status(404).json();
 
-        Drinker.findById(req.body.id).populate('events').exec((err, drinker) => {
+        Drinker.findById(req.body.id).exec((err, drinker) => {
             if (err) res.status(500).json();
             if (!drinker) res.status(404).json();
 
