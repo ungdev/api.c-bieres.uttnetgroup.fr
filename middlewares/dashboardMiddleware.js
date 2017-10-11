@@ -12,6 +12,10 @@ module.exports = function(req, res, next) {
         return next();
     }
 
+    // if no authorization in header, not auth so 401
+    if (!req.headers.authorization)
+      res.status(401).json()
+
     // 'authorization': 'Bearer [jwt]', we only want the jwt
     const jwt = req.headers.authorization.split(' ')[1];
 
