@@ -44,9 +44,9 @@ exports.update = function(req, res) {
     fileHelper.saveUploadedBeerImage(req.file)
         .then(filename => {
             req.body.image = filename ? filename : req.body.image;
-            Beer.findOneAndUpdate({_id: req.params.id}, req.body, (err, beer) => {
+            Beer.findOneAndUpdate({_id: req.params.id}, req.body, {new: true}, (err, beer) => {
                 if (err)
-                    res.status(400).json(err);
+                    return res.status(400).json(err);
                 res.json(beer);
             });
         })
