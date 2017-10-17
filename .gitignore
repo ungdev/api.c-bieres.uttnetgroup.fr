@@ -2,4 +2,5 @@
 .env
 
 /temp
-/public/beers
+/public/beers/*
+!/public/beers/.gitkeep
