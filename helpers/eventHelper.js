@@ -8,13 +8,16 @@ const Drinker = mongoose.model('Drinker');
  * @return {Promise}
  */
 function getNextEvent() {
-    return new Promise((resolve, reject) => {
-        Event.find({ when: {$gt: new Date()} }).populate('beers').sort({when: 'asc'}).limit(1).exec((err, events) => {
-            if (err)
-                reject(err);
-            resolve(events[0]);
-        });
+  return new Promise((resolve, reject) => {
+    // next event can be today ! So greater than yesterday
+    let yesterday = new Date();
+    yesterday.setTime(yesterday.getTime() - 24*60*60*1000);
+    Event.find({ when: {$gt: yesterday} }).populate('beers').sort({when: 'asc'}).limit(1).exec((err, events) => {
+        if (err)
+            reject(err);
+        resolve(events[0]);
     });
+  });
 }
 
 /**

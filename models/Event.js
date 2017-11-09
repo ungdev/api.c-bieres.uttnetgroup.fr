@@ -9,7 +9,7 @@ const EventSchema = new Schema({
     when: {
         type: Date,
         required: true,
-        min: new Date
+        min: new Date() - 24*60*60*1000
     },
     beers: [{
         type: Schema.Types.ObjectId,
