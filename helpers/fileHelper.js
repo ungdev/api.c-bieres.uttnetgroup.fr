@@ -11,7 +11,7 @@ const fs = require('fs.extra');
     return new Promise((resolve, reject) => {
         if (!file) resolve();
 
-        fs.copy(file.path, "public/beers/" + file.originalname, { replace: true },  err => {
+        fs.copy(file.path, "/public/beers/" + file.originalname, { replace: true },  err => {
             if (err) reject(err);
             resolve("beers/" + file.originalname);
         });
@@ -33,7 +33,7 @@ function deleteBeerImage(path) {
         fs.exists(path, exists => {
             if (!exists) resolve();
 
-            fs.unlink("public/" + path, err => {
+            fs.unlink("/public/" + path, err => {
                 if (err) reject(err);
                 resolve();
             });

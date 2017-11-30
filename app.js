@@ -31,7 +31,7 @@ app.use(bodyParser.json());
 app.use(cors());
 
 // static files
-app.use(express.static('public'));
+app.use(express.static('/public'));
 
 // middlewares to upload beer pictures
 app.put('/api/beer/:id', upload.single('file'), function (req, res, next) {
