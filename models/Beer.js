@@ -11,7 +11,6 @@ const BeerSchema = new Schema({
     },
     description: {
         type: String,
-        required: true
     },
     degree: {
         type: Number

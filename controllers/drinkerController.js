@@ -12,7 +12,7 @@ function createDrinker(req, res, event) {
 
     const newDrinker = new Drinker(req.body);
     newDrinker.save((err, drinker) => {
-        if (err) res.status(500).json(err);
+        if (err) return res.status(500).json(err);
 
         eventHelper.registerDrinker(event, drinker)
             .then(results => res.json(results))
@@ -53,7 +53,7 @@ exports.get = function(req, res) {
 
     Drinker.find(where, (err, drinkers) => {
         if (err)
-            res.status(500).json(err);
+            return res.status(500).json(err);
 
         res.json(drinkers);
     });

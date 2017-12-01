@@ -15,7 +15,7 @@ const fileHelper = require('../helpers/fileHelper');
  */
 exports.unregister = function(req, res) {
     if (!req.body.authorization_code) {
-        res.status(400).json({ message: "missing authorization code" });
+        return res.status(400).json({ message: "missing authorization code" });
     }
 
     // unregister by authorization_code.
@@ -57,19 +57,19 @@ exports.unregister = function(req, res) {
  */
 exports.unregisterById = function(req, res) {
     if (!req.body.id) {
-        res.status(400).json({ message: "missing id" });
+        return res.status(400).json({ message: "missing id" });
     }
     if (!req.body.eventId) {
-        res.status(400).json({ message: "missing event id" });
+        return res.status(400).json({ message: "missing event id" });
     }
 
     Event.findById(req.body.eventId).exec((err, event) => {
-        if (err) res.status(500).json();
-        if (!event) res.status(404).json();
+        if (err) return res.status(500).json();
+        if (!event) return res.status(404).json();
 
         Drinker.findById(req.body.id).exec((err, drinker) => {
-            if (err) res.status(500).json();
-            if (!drinker) res.status(404).json();
+            if (err) return res.status(500).json();
+            if (!drinker) return res.status(404).json();
 
             eventHelper.unregisterDrinker(event, drinker)
                 .then(result => res.status(result.code).json(result.data))
@@ -87,19 +87,19 @@ exports.unregisterById = function(req, res) {
  */
 exports.registerById = function(req, res) {
     if (!req.body.id) {
-        res.status(400).json({ message: "missing drinker id" });
+        return res.status(400).json({ message: "missing drinker id" });
     }
     if (!req.body.eventId) {
-        res.status(400).json({ message: "missing event id" });
+        return res.status(400).json({ message: "missing event id" });
     }
 
     Event.findById(req.body.eventId)
         .then(event => {
-            if (!event) res.status(404).json({ message: "L'évènement n'existe pas" });
+            if (!event) return res.status(404).json({ message: "L'évènement n'existe pas" });
 
             Drinker.findById(req.body.id).exec((err, drinker) => {
-                if (err) res.status(500).json(err);
-                if (!drinker) res.status(404).json({ message: "Cette personne n'existe pas." });
+                if (err) return res.status(500).json(err);
+                if (!drinker) return res.status(404).json({ message: "Cette personne n'existe pas." });
 
                 eventHelper.registerDrinker(event, drinker)
                     .then(drinker => res.json(drinker))
@@ -118,7 +118,7 @@ exports.registerById = function(req, res) {
  */
 exports.register = function(req, res) {
     if (!req.body.authorization_code) {
-        res.status(400).json({ message: "missing authorization code" })
+        return res.status(400).json({ message: "missing authorization code" })
     }
 
     let EtuUTT = EtuUTTService();
@@ -136,7 +136,7 @@ exports.register = function(req, res) {
         eventHelper.getNextEvent()
             .then(event => {
                 if (!event) {
-                    res.status(404).json({ message: "Aucun évènement n'est prévu prochainement" });
+                    return res.status(404).json({ message: "Aucun évènement n'est prévu prochainement" });
                 }
 
                 // get the drinker, by student id (unique)
@@ -157,7 +157,7 @@ exports.register = function(req, res) {
                             const newDrinker = new Drinker(etuUTTUser.data);
                             newDrinker.save((err, drinker) => {
                                 if (err)
-                                    res.status(400).json(err);
+                                    return res.status(400).json(err);
 
                                 eventHelper.registerDrinker(event, drinker)
                                     .then(_ => res.json({event}))
@@ -176,7 +176,7 @@ exports.register = function(req, res) {
 exports.get = function(req, res) {
     Event.find().sort(req.query.sort).exec((err, events) => {
         if (err)
-            res.status(500).json(err);
+            return res.status(500).json(err);
 
         res.json(events);
     });
@@ -185,9 +185,9 @@ exports.get = function(req, res) {
 exports.getById = function(req, res) {
     Event.findById(req.params.id).populate(['beers', 'drinkers']).exec((err, event) => {
         if (err)
-            res.status(500).json(err);
+            return res.status(500).json(err);
         if (!event)
-            res.status(404).json(err);
+            return res.status(404).json(err);
         res.json(event);
     });
 };
@@ -202,7 +202,7 @@ exports.create = function(req, res) {
     const newEvent = new Event(req.body);
     newEvent.save((err, event) => {
         if (err)
-            res.status(500).json(err);
+            return res.status(500).json(err);
         res.json(event);
     });
 };
@@ -210,7 +210,7 @@ exports.create = function(req, res) {
 exports.update = function(req, res) {
     Event.findOneAndUpdate({_id: req.params.id}, req.body, {new: true, runValidators: true }, (err, event) => {
         if (err)
-            res.status(500).json(err);
+            return res.status(500).json(err);
         res.json(event);
     });
 };
@@ -218,13 +218,13 @@ exports.update = function(req, res) {
 exports.delete = function(req, res) {
     Event.findById({_id: req.params.id}).populate('beers').exec((err, event) => {
         if (err)
-            res.status(500).json(err);
+            return res.status(500).json(err);
 
         fileHelper.deleteBeerImages(event.beers.map(beer => beer.image))
             .then(_ => {
                 event.remove(err => {
                     if (err)
-                        res.status(500).json(err);
+                        return res.status(500).json(err);
                     res.status(200).json();
                 });
 

@@ -7,7 +7,7 @@ const fileHelper = require('../helpers/fileHelper');
 exports.get = function(req, res) {
     Beer.find({}, (err, beer) => {
         if (err)
-            res.status(400).json(err);
+            return res.status(400).json(err);
         res.json(beer);
     });
 };
@@ -15,7 +15,7 @@ exports.get = function(req, res) {
 exports.getById = function(req, res) {
     Beer.findById(req.params.id).exec((err, beer) => {
         if (err)
-            res.status(400).json(err);
+            return res.status(400).json(err);
         res.json(beer);
     });
 };
@@ -27,8 +27,12 @@ exports.create = function(req, res) {
             const newBeer = new Beer(req.body);
             newBeer.image = filename;
             newBeer.save((err, beer) => {
+                console.log(beer);
                 if (err)
-                    res.status(400).json(err);
+                    return res.status(400).json(err);
+                if (!beer)
+                    return res.status(500).json();
+
                 Event.findById(beer.event_id).exec((err, event) => {
                     event.beers.push(beer);
                     event.save(err => {
@@ -57,7 +61,7 @@ exports.delete = function(req, res) {
 
     Beer.findById(req.params.id).exec((err, beer) => {
         if (err)
-            res.status(400).json(err);
+            return res.status(400).json(err);
         fileHelper.deleteBeerImage(beer.image)
             .then(_ => {
                 Event.findById(beer.event_id).exec((err, event) => {
