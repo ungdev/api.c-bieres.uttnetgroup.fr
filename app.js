@@ -26,12 +26,15 @@ const storage = multer.diskStorage({
 });
 const upload = multer({ storage });
 
+// set public path
+process.env.PUBLIC_PATH = process.env.NODE_ENV === "production" ? "/public" : "public"
+
 // middlewares
 app.use(bodyParser.json());
 app.use(cors());
 
 // static files
-app.use(express.static('/public'));
+app.use(express.static(process.env.PUBLIC_PATH));
 
 // middlewares to upload beer pictures
 app.put('/api/beer/:id', upload.single('file'), function (req, res, next) {
