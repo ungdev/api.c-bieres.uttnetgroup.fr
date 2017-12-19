@@ -174,7 +174,10 @@ exports.register = function(req, res) {
 };
 
 exports.get = function(req, res) {
-    Event.find().sort(req.query.sort).exec((err, events) => {
+    // if before attribute in query, return only events than happened before this date
+    const query = req.query.before ? {when: {"$lt": req.query.before}} : {};
+
+    Event.find(query).sort(req.query.sort).exec((err, events) => {
         if (err)
             return res.status(500).json(err);
 
