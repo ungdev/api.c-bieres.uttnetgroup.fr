@@ -26,7 +26,7 @@ const _register = (res, event, drinker) => {
  */
 const _unregister = (res, event, drinker) => {
   eventHelper.unregisterDrinker(event, drinker)
-    .then(result => res.status(result.code).json(result.data))
+    .then(data => res.status(200).json(data))
     .catch(err => res.status(500).json(err))
 }
 
@@ -41,9 +41,10 @@ exports.unregister = function(req, res) {
   // if id in body, check that the requester is allowed to unregister him
   if (toUnregister != req.payload.studentId && !req.payload.isAdmin)
     return res.status(403).json({ message: "Non authorisé à désinscrire cette personne." })
-
-  Drinker.findOne({ studentId: toUnregister })
+  Drinker.findById(toUnregister)
     .then(drinker => {
+      if (!drinker)
+        return res.status(404).json({ message: "La personne a désinscrire n'existe pas." })
       // if event in request, fetch this event, else, fetch the next event
       if (req.body.eventId) {
         Event.findById(req.body.eventId)
@@ -51,7 +52,7 @@ exports.unregister = function(req, res) {
             if (!event)
               return res.status(404).json({ message: "L'évènement n'existe pas" })
             // all is ok, unregister the drinker to this event
-            _unregister(req, event, drinker)
+            _unregister(res, event, drinker)
           })
           .catch(err => res.status(500).json(err))
       } else {
@@ -93,7 +94,7 @@ exports.register = function(req, res) {
             if (!event)
               return res.status(404).json({ message: "L'évènement n'existe pas" })
             // all is ok, register the drinker to this event
-            _register(req, event, drinker)
+            _register(res, event, drinker)
           })
           .catch(err => res.status(500).json(err))
       } else {

@@ -58,33 +58,23 @@ function registerDrinker(event, drinker) {
  * @return {Promise}
  */
 function unregisterDrinker(event, drinker) {
-    return new Promise((resolve, reject) => {
-        console.log("4");
-        console.log(event.drinkers);
-        // if doesn't exists or not in the event, we have nothing to do
-        if (event.drinkers.filter(id => String(id) == String(drinker._id)).length === 0) {
-            return resolve({code: 204});
-        }
-        // else, unregister the drinker
-        event.drinkers = event.drinkers.filter(id => String(id) !== String(drinker._id));
-
-        event.save((err, savedEvent) => {
-            if (err)
-                reject(err);
-
-            drinker.events = drinker.events.filter(id => String(id) !== String(savedEvent._id));
-
-            drinker.save((err, savedDrinker) => {
-                if (err)
-                    reject(err);
-
-                resolve({
-                    code: 200,
-                    data: {event: savedEvent, drinker: savedDrinker}
-                });
-            });
-        });
-    });
+  return new Promise((resolve, reject) => {
+    // remove the drinker from the drinkers of this event
+    event.drinkers = event.drinkers.filter(id => String(id) !== String(drinker._id))
+    // save changes
+    event.save((err, savedEvent) => {
+      if (err)
+        reject(err)
+      // remove the event from the events of this drinker
+      drinker.events = drinker.events.filter(id => String(id) !== String(savedEvent._id))
+      // save changes
+      drinker.save((err, savedDrinker) => {
+        if (err)
+          reject(err)
+        resolve({event: savedEvent, drinker: savedDrinker})
+      })
+    })
+  })
 }
 
 module.exports = {getNextEvent, unregisterDrinker, registerDrinker};
