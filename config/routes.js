@@ -1,14 +1,18 @@
-const eventController = require('../controllers/eventController');
-const beerController = require('../controllers/beerController');
-const oauthController = require('../controllers/oauthController');
-const adminController = require('../controllers/adminController');
-const drinkerController = require('../controllers/drinkerController');
+const eventController = require('../controllers/eventController')
+const beerController = require('../controllers/beerController')
+const oauthController = require('../controllers/oauthController')
+const adminController = require('../controllers/adminController')
+const drinkerController = require('../controllers/drinkerController')
 
-const dashboardMiddleware = require('../middlewares/dashboardMiddleware');
+const adminMiddleware = require('../middlewares/adminMiddleware')
+const authMiddleware = require('../middlewares/authMiddleware')
+const jwtMiddleware = require('../middlewares/jwtMiddleware')
 
 module.exports = function(app) {
 
-    app.use('/api', dashboardMiddleware);
+    app.use('/api', jwtMiddleware)
+    app.use('/api', authMiddleware)
+    app.use('/api', adminMiddleware)
 
     // admin routes
     app.route('/api/admin')

@@ -14,39 +14,17 @@ const fileHelper = require('../helpers/fileHelper');
  * @return {response}
  */
 exports.unregister = function(req, res) {
-    if (!req.body.authorization_code) {
-        return res.status(400).json({ message: "missing authorization code" });
-    }
-
-    // unregister by authorization_code.
-    // so we need to fetch the user
-
-    let EtuUTT = EtuUTTService();
-    let tokenObj;
-
-    // check if the code is valid
-    EtuUTT.oauthTokenByAuthCode(req.body.authorization_code)
-    .then((data) => {
-        tokenObj = data;
-        // get the user's data
-        return EtuUTT.publicUserAccount();
+  Drinker.findOne({ studentId: req.payload.studentId })
+    .then(drinker => {
+      eventHelper.getNextEvent()
+        .then(event => {
+          eventHelper.unregisterDrinker(event, drinker)
+            .then(result => res.status(result.code).json(result.data))
+            .catch(err => res.status(500).json(err))
+        })
+        .catch(err => res.status(500).json(err))
     })
-    .then((etuUTTUser) => {
-        Drinker.findOne({ studentId: etuUTTUser.data.studentId })
-            .then(drinker => {
-                eventHelper.getNextEvent()
-                    .then(event => {
-                        eventHelper.unregisterDrinker(event, drinker)
-                            .then(result => res.status(result.code).json(result.data))
-                            .catch(err => res.status(500).json(err));
-                    })
-                    .catch(err => res.status(500).json(err));
-            })
-            .catch(err => res.status(500).json(err));
-    })
-    .catch(err => res.status(500).json({ message: "An error occurs during communications with the api of EtuUTT: " + err }))
-
-};
+}
 
 /**
  * Unregister a Drinker to a given event by his database id
@@ -117,67 +95,48 @@ exports.registerById = function(req, res) {
  * @return {response}
  */
 exports.register = function(req, res) {
-    if (!req.body.authorization_code) {
-        return res.status(400).json({ message: "missing authorization code" })
+
+// get the next event
+eventHelper.getNextEvent()
+  .then(event => {
+    if (!event) {
+        return res.status(404).json({ message: "Aucun évènement n'est prévu prochainement" });
     }
 
-    let EtuUTT = EtuUTTService();
-    let tokenObj;
+    // get the drinker, by student id (unique)
+    Drinker.findOne({ studentId: req.payload.studentId })
+      .then(drinker => {
+        // if exists, register him to the event
+        if (drinker) {
+          // if already registered, return error
+          if (event.drinkers.filter(id => String(id) == String(drinker._id)).length)
+            return res.status(409).json({ event })
 
-    // check if the code is valid
-    EtuUTT.oauthTokenByAuthCode(req.body.authorization_code)
-    .then((data) => {
-        tokenObj = data;
-        // get the user's data
-        return EtuUTT.publicUserAccount();
-    })
-    .then((etuUTTUser) => {
-        // get the next event
-        eventHelper.getNextEvent()
-            .then(event => {
-                if (!event) {
-                    return res.status(404).json({ message: "Aucun évènement n'est prévu prochainement" });
-                }
+          eventHelper.registerDrinker(event, drinker)
+            .then(_ => res.json({event}))
+            .catch(err => res.status(500).json(err))
+        } else {
+          // else, store it before
+          const newDrinker = new Drinker(etuUTTUser.data);
+          newDrinker.save((err, drinker) => {
+            if (err)
+              return res.status(400).json(err)
 
-                // get the drinker, by student id (unique)
-                Drinker.findOne({ studentId: String(etuUTTUser.data.studentId) })
-                    .then(drinker => {
-
-                        // if exists, register him to the event
-                        if (drinker) {
-                            // if already registered, return error
-                            if (event.drinkers.filter(id => String(id) == String(drinker._id)).length)
-                                return res.status(409).json({ event });
-
-                            eventHelper.registerDrinker(event, drinker)
-                                .then(_ => res.json({event}))
-                                .catch(err => res.status(500).json(err));
-                        } else {
-                            // else, store it before
-                            const newDrinker = new Drinker(etuUTTUser.data);
-                            newDrinker.save((err, drinker) => {
-                                if (err)
-                                    return res.status(400).json(err);
-
-                                eventHelper.registerDrinker(event, drinker)
-                                    .then(_ => res.json({event}))
-                                    .catch(err => res.status(500).json(err));
-                            });
-                        }
-                    });
-
-
-            })
-            .catch(err => res.status(500).json(err));
-    })
-    .catch(error => res.status(500).json({ message: "An error occurs during communications with the api of EtuUTT: " + error }))
-};
+            eventHelper.registerDrinker(event, drinker)
+              .then(_ => res.json({event}))
+              .catch(err => res.status(500).json(err))
+          })
+        }
+      })
+  })
+  .catch(err => res.status(500).json(err));
+}
 
 exports.get = function(req, res) {
     // if before attribute in query, return only events than happened before this date
     const query = req.query.before ? {when: {"$lt": req.query.before}} : {};
 
-    Event.find(query).sort(req.query.sort).exec((err, events) => {
+    Event.find(query).populate(['beers', 'drinkers']).sort(req.query.sort).exec((err, events) => {
         if (err)
             return res.status(500).json(err);
 
