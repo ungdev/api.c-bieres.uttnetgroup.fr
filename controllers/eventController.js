@@ -7,129 +7,111 @@ const eventHelper = require('../helpers/eventHelper');
 const fileHelper = require('../helpers/fileHelper');
 
 /**
- * Unregister a Drinker to the next event with his authorization_code
- *
- * @param  {request} req
- * @param  {response} res
- * @return {response}
+ * Register the given Drinker to the given Event
+ * @param  {Response} res
+ * @param  {Event} event
+ * @param  {Drinker} drinker
+ */
+const _register = (res, event, drinker) => {
+  eventHelper.registerDrinker(event, drinker)
+    .then(_ => res.json({event}))
+    .catch(err => res.status(500).json(err))
+}
+
+/**
+ * Unregister the given Drinker to the given Event
+ * @param  {Response} res
+ * @param  {Event} event
+ * @param  {Drinker} drinker
+ */
+const _unregister = (res, event, drinker) => {
+  eventHelper.unregisterDrinker(event, drinker)
+    .then(result => res.status(result.code).json(result.data))
+    .catch(err => res.status(500).json(err))
+}
+
+/**
+ * Handle unregister requests
+ * @param  {Request} req
+ * @param  {Response} res
  */
 exports.unregister = function(req, res) {
-  Drinker.findOne({ studentId: req.payload.studentId })
+  // by default, unregister the requester. If id in body, unregister the drinker with this id
+  const toUnregister = req.body.id || req.payload.studentId
+  // if id in body, check that the requester is allowed to unregister him
+  if (toUnregister != req.payload.studentId && !req.payload.isAdmin)
+    return res.status(403).json({ message: "Non authorisé à désinscrire cette personne." })
+
+  Drinker.findOne({ studentId: toUnregister })
     .then(drinker => {
-      eventHelper.getNextEvent()
-        .then(event => {
-          eventHelper.unregisterDrinker(event, drinker)
-            .then(result => res.status(result.code).json(result.data))
-            .catch(err => res.status(500).json(err))
-        })
-        .catch(err => res.status(500).json(err))
+      // if event in request, fetch this event, else, fetch the next event
+      if (req.body.eventId) {
+        Event.findById(req.body.eventId)
+          .then(event => {
+            if (!event)
+              return res.status(404).json({ message: "L'évènement n'existe pas" })
+            // all is ok, unregister the drinker to this event
+            _unregister(req, event, drinker)
+          })
+          .catch(err => res.status(500).json(err))
+      } else {
+        // get the next event
+        eventHelper.getNextEvent()
+          .then(event => {
+            // if no next event, return error
+            if (!event)
+              return res.status(404).json({ message: "Aucun évènement n'est prévu prochainement" });
+            // if not registered, return success
+            if (event.drinkers.filter(id => String(id) == String(drinker._id)).length === 0)
+              return res.status(200).json({ event })
+            // all is ok, unregister the drinker to the next event
+            _unregister(res, event, drinker)
+          })
+          .catch(err => res.status(500).json(err));
+      }
     })
 }
 
 /**
- * Unregister a Drinker to a given event by his database id
- *
- * @param  {request} req
- * @param  {response} res
- * @return {response}
- */
-exports.unregisterById = function(req, res) {
-    if (!req.body.id) {
-        return res.status(400).json({ message: "missing id" });
-    }
-    if (!req.body.eventId) {
-        return res.status(400).json({ message: "missing event id" });
-    }
-
-    Event.findById(req.body.eventId).exec((err, event) => {
-        if (err) return res.status(500).json();
-        if (!event) return res.status(404).json();
-
-        Drinker.findById(req.body.id).exec((err, drinker) => {
-            if (err) return res.status(500).json();
-            if (!drinker) return res.status(404).json();
-
-            eventHelper.unregisterDrinker(event, drinker)
-                .then(result => res.status(result.code).json(result.data))
-                .catch(err => res.status(500).json(err));
-        })
-    })
-};
-
-/**
- * Register a Drinker to a given event by his database id
- *
- * @param  {request} req
- * @param  {response} res
- * @return {response}
- */
-exports.registerById = function(req, res) {
-    if (!req.body.id) {
-        return res.status(400).json({ message: "missing drinker id" });
-    }
-    if (!req.body.eventId) {
-        return res.status(400).json({ message: "missing event id" });
-    }
-
-    Event.findById(req.body.eventId)
-        .then(event => {
-            if (!event) return res.status(404).json({ message: "L'évènement n'existe pas" });
-
-            Drinker.findById(req.body.id).exec((err, drinker) => {
-                if (err) return res.status(500).json(err);
-                if (!drinker) return res.status(404).json({ message: "Cette personne n'existe pas." });
-
-                eventHelper.registerDrinker(event, drinker)
-                    .then(drinker => res.json(drinker))
-                    .catch(err => res.status(500).json(err));
-            });
-        })
-        .catch(err => res.status(500).json(err));
-}
-
-/**
- * Register a Drinker to the next event by authorization_code
- *
- * @param  {request} req
- * @param  {response} res
- * @return {response}
+ * Handle register requests
+ * @param  {Request} req
+ * @param  {Response} res
  */
 exports.register = function(req, res) {
+  // by default, register the requester. If id in body, register the drinker with this id
+  const toRegister = req.body.id || req.payload.studentId
+  // if id in body, check that the requester is allowed to register him
+  if (toRegister != req.payload.studentId && !req.payload.isAdmin)
+    return res.status(403).json({ message: "Non authorisé à inscrire cette personne." })
 
-// get the next event
-eventHelper.getNextEvent()
-  .then(event => {
-    if (!event) {
-        return res.status(404).json({ message: "Aucun évènement n'est prévu prochainement" });
-    }
-
-    // get the drinker, by student id (unique)
-    Drinker.findOne({ studentId: req.payload.studentId })
-      .then(drinker => {
-        // if exists, register him to the event
-        if (drinker) {
-          // if already registered, return error
-          if (event.drinkers.filter(id => String(id) == String(drinker._id)).length)
-            return res.status(409).json({ event })
-
-          eventHelper.registerDrinker(event, drinker)
-            .then(_ => res.json({event}))
-            .catch(err => res.status(500).json(err))
-        } else {
-          // else, store it before
-          const newDrinker = new Drinker(etuUTTUser.data);
-          newDrinker.save((err, drinker) => {
-            if (err)
-              return res.status(400).json(err)
-
-            eventHelper.registerDrinker(event, drinker)
-              .then(_ => res.json({event}))
-              .catch(err => res.status(500).json(err))
+  Drinker.findOne({ studentId: toRegister })
+    .then(drinker => {
+      // if event in request, fetch this event, else, fetch the next event
+      if (req.body.eventId) {
+        Event.findById(req.body.eventId)
+          .then(event => {
+            if (!event)
+              return res.status(404).json({ message: "L'évènement n'existe pas" })
+            // all is ok, register the drinker to this event
+            _register(req, event, drinker)
           })
-        }
-      })
-  })
-  .catch(err => res.status(500).json(err));
+          .catch(err => res.status(500).json(err))
+      } else {
+        // get the next event
+        eventHelper.getNextEvent()
+          .then(event => {
+            // if no next event, return error
+            if (!event)
+              return res.status(404).json({ message: "Aucun évènement n'est prévu prochainement" });
+            // if already registered, return error
+            if (event.drinkers.filter(id => String(id) == String(drinker._id)).length)
+              return res.status(409).json({ event })
+            // all is ok, register the drinker to the next event
+            _register(res, event, drinker)
+          })
+          .catch(err => res.status(500).json(err));
+      }
+    })
 }
 
 exports.get = function(req, res) {

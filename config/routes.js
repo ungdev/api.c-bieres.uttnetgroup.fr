@@ -27,14 +27,10 @@ module.exports = function(app) {
         .post(eventController.create);
     app.route('/api/event/next')
         .get(eventController.getNext);
-    app.route('/api/event/next/register')
+    app.route('/api/event/register')
         .post(eventController.register);
-    app.route('/api/event/next/register/id')
-        .post(eventController.registerById);
-    app.route('/api/event/next/unregister')
+    app.route('/api/event/unregister')
         .post(eventController.unregister);
-    app.route('/api/event/next/unregister/id')
-        .post(eventController.unregisterById);
     app.route('/api/event/:id')
         .get(eventController.getById)
         .put(eventController.update)
