@@ -31,15 +31,57 @@ const _unregister = (res, event, drinker) => {
 }
 
 /**
+ * Handle register requests
+ * @param  {Request} req
+ * @param  {Response} res
+ */
+exports.register = function(req, res) {
+  // by default, register the requester. If id in body, register the drinker with this id
+  const toRegister = req.body.id || req.payload.id
+  // if id in body, check that the requester is allowed to register him
+  if (toRegister != req.payload.id && !req.payload.isAdmin)
+    return res.status(403).json({ message: "Non authorisé à inscrire cette personne." })
+
+  Drinker.findById(toRegister)
+    .then(drinker => {
+      // if event in request, fetch this event, else, fetch the next event
+      if (req.body.eventId) {
+        Event.findById(req.body.eventId)
+          .then(event => {
+            if (!event)
+              return res.status(404).json({ message: "L'évènement n'existe pas" })
+            // all is ok, register the drinker to this event
+            _register(res, event, drinker)
+          })
+          .catch(err => res.status(500).json(err))
+      } else {
+        // get the next event
+        eventHelper.getNextEvent()
+          .then(event => {
+            // if no next event, return error
+            if (!event)
+              return res.status(404).json({ message: "Aucun évènement n'est prévu prochainement" });
+            // if already registered, return error
+            if (event.drinkers.filter(id => String(id) == String(drinker._id)).length)
+              return res.status(409).json({ event })
+            // all is ok, register the drinker to the next event
+            _register(res, event, drinker)
+          })
+          .catch(err => res.status(500).json(err));
+      }
+    })
+}
+
+/**
  * Handle unregister requests
  * @param  {Request} req
  * @param  {Response} res
  */
 exports.unregister = function(req, res) {
   // by default, unregister the requester. If id in body, unregister the drinker with this id
-  const toUnregister = req.body.id || req.payload.studentId
+  const toUnregister = req.body.id || req.payload.id
   // if id in body, check that the requester is allowed to unregister him
-  if (toUnregister != req.payload.studentId && !req.payload.isAdmin)
+  if (toUnregister != req.payload.id && !req.payload.isAdmin)
     return res.status(403).json({ message: "Non authorisé à désinscrire cette personne." })
   Drinker.findById(toUnregister)
     .then(drinker => {
@@ -67,48 +109,6 @@ exports.unregister = function(req, res) {
               return res.status(200).json({ event })
             // all is ok, unregister the drinker to the next event
             _unregister(res, event, drinker)
-          })
-          .catch(err => res.status(500).json(err));
-      }
-    })
-}
-
-/**
- * Handle register requests
- * @param  {Request} req
- * @param  {Response} res
- */
-exports.register = function(req, res) {
-  // by default, register the requester. If id in body, register the drinker with this id
-  const toRegister = req.body.id || req.payload.studentId
-  // if id in body, check that the requester is allowed to register him
-  if (toRegister != req.payload.studentId && !req.payload.isAdmin)
-    return res.status(403).json({ message: "Non authorisé à inscrire cette personne." })
-
-  Drinker.findOne({ studentId: toRegister })
-    .then(drinker => {
-      // if event in request, fetch this event, else, fetch the next event
-      if (req.body.eventId) {
-        Event.findById(req.body.eventId)
-          .then(event => {
-            if (!event)
-              return res.status(404).json({ message: "L'évènement n'existe pas" })
-            // all is ok, register the drinker to this event
-            _register(res, event, drinker)
-          })
-          .catch(err => res.status(500).json(err))
-      } else {
-        // get the next event
-        eventHelper.getNextEvent()
-          .then(event => {
-            // if no next event, return error
-            if (!event)
-              return res.status(404).json({ message: "Aucun évènement n'est prévu prochainement" });
-            // if already registered, return error
-            if (event.drinkers.filter(id => String(id) == String(drinker._id)).length)
-              return res.status(409).json({ event })
-            // all is ok, register the drinker to the next event
-            _register(res, event, drinker)
           })
           .catch(err => res.status(500).json(err));
       }
