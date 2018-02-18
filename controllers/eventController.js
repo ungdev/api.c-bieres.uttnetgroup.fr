@@ -1,10 +1,10 @@
-const EtuUTTService = require('../services/EtuUTTService.js');
-const mongoose = require('mongoose');
-const Event = mongoose.model('Event');
-const Drinker = mongoose.model('Drinker');
+const mongoose = require('mongoose')
+const Event = mongoose.model('Event')
+const Drinker = mongoose.model('Drinker')
 
-const eventHelper = require('../helpers/eventHelper');
-const fileHelper = require('../helpers/fileHelper');
+const EtuUTTService = require('../services/EtuUTTService.js')
+const eventHelper = require('../helpers/eventHelper')
+const fileHelper = require('../helpers/fileHelper')
 
 /**
  * Register the given Drinker to the given Event
@@ -14,7 +14,7 @@ const fileHelper = require('../helpers/fileHelper');
  */
 const _register = (res, event, drinker) => {
   eventHelper.registerDrinker(event, drinker)
-    .then(_ => res.json({event}))
+    .then(_ => res.status(204).send())
     .catch(err => res.status(500).json(err))
 }
 
@@ -26,7 +26,7 @@ const _register = (res, event, drinker) => {
  */
 const _unregister = (res, event, drinker) => {
   eventHelper.unregisterDrinker(event, drinker)
-    .then(data => res.status(200).json(data))
+    .then(_ => res.status(204).send())
     .catch(err => res.status(500).json(err))
 }
 
@@ -35,7 +35,7 @@ const _unregister = (res, event, drinker) => {
  * @param  {Request} req
  * @param  {Response} res
  */
-exports.register = function(req, res) {
+exports.register = (req, res) => {
   // by default, register the requester. If id in body, register the drinker with this id
   const toRegister = req.body.id || req.payload.id
   // if id in body, check that the requester is allowed to register him
@@ -110,70 +110,61 @@ exports.unregister = function(req, res) {
             // all is ok, unregister the drinker to the next event
             _unregister(res, event, drinker)
           })
-          .catch(err => res.status(500).json(err));
+          .catch(err => res.status(500).json(err))
       }
     })
 }
 
-exports.get = function(req, res) {
-    // if before attribute in query, return only events than happened before this date
-    const query = req.query.before ? {when: {"$lt": req.query.before}} : {};
+exports.get = (req, res) => {
+  // if 'before' attribute in query, return only events than happened before this date
+  const query = req.query.before ? {when: {"$lt": req.query.before}} : {}
 
-    Event.find(query).populate(['beers', 'drinkers']).sort(req.query.sort).exec((err, events) => {
-        if (err)
-            return res.status(500).json(err);
+  Event.find(query).populate(['beers', 'drinkers']).sort(req.query.sort)
+    .then(events => res.json(events))
+    .catch(err => res.status(500).json(err))
+}
 
-        res.json(events);
-    });
-};
+exports.getById = (req, res) => {
+  Event.findById(req.params.id).populate(['beers', 'drinkers'])
+    .then(event => {
+      if (!event)
+        return res.status(404).send()
+      res.json(event)
+    })
+    .catch(err => res.status(err.name === "CastError" ? 400 : 500).json(err))
+}
 
-exports.getById = function(req, res) {
-    Event.findById(req.params.id).populate(['beers', 'drinkers']).exec((err, event) => {
-        if (err)
-            return res.status(500).json(err);
-        if (!event)
-            return res.status(404).json(err);
-        res.json(event);
-    });
-};
+exports.getNext = (req, res) => {
+  eventHelper.getNextEvent()
+    .then(event => {
+      if (!event)
+        return res.status(404).send()
+      res.json(event)
+    })
+    .catch(err => res.status(500).json(err))
+}
 
-exports.getNext = function(req, res) {
-    eventHelper.getNextEvent()
-        .then(event => res.json(event))
-        .catch(err => res.status(500).json(err));
-};
+exports.create = (req, res) => {
+  new Event(req.body).save()
+    .then(event => res.status(201).json(event))
+    .catch(err => res.status(err.name === "ValidationError" ? 400 : 500).json(err))
+}
 
-exports.create = function(req, res) {
-    const newEvent = new Event(req.body);
-    newEvent.save((err, event) => {
-        if (err)
-            return res.status(500).json(err);
-        res.json(event);
-    });
-};
+exports.update = (req, res) => {
+  Event.findByIdAndUpdate(req.params.id, req.body, {new: true, runValidators: true })
+    .then(_ => res.status(beer ? 204 : 404).send())
+    .catch(err => res.status(err.name === "ValidationError" ? 400 : 500).json(err))
+}
 
-exports.update = function(req, res) {
-    Event.findOneAndUpdate({_id: req.params.id}, req.body, {new: true, runValidators: true }, (err, event) => {
-        if (err)
-            return res.status(500).json(err);
-        res.json(event);
-    });
-};
-
-exports.delete = function(req, res) {
-    Event.findById({_id: req.params.id}).populate('beers').exec((err, event) => {
-        if (err)
-            return res.status(500).json(err);
-
-        fileHelper.deleteBeerImages(event.beers.map(beer => beer.image))
-            .then(_ => {
-                event.remove(err => {
-                    if (err)
-                        return res.status(500).json(err);
-                    res.status(200).json();
-                });
-
-            })
-            .catch(err => console.log(err));
-    });
-};
+exports.delete = (req, res) => {
+  Event.findById({_id: req.params.id}).populate('beers')
+    .then(event => {
+      if (!event)
+        return res.status(404).send()
+      fileHelper.deleteBeerImages(event.beers.map(beer => beer.image))
+        .then(_ => event.remove())
+        .then(_ => res.status(204).send())
+        .catch(err => res.status(500).json(err))
+    })
+    .catch(err => res.status(err.name === "CastError" ? 400 : 500).json(err))
+}

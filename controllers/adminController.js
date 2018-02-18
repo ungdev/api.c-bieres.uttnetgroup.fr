@@ -1,27 +1,24 @@
-const mongoose = require('mongoose');
-const Admin = mongoose.model('Admin');
+const mongoose = require('mongoose')
+const Admin = mongoose.model('Admin')
 
-exports.get = function(req, res) {
-    Admin.find({}, (err, admins) => {
-        if (err)
-            return res.status(500).json(err);
-        res.json(admins);
-    });
-};
+exports.get = (req, res) => {
+  Admin.find()
+    .then(admins => res.json(admins))
+    .catch(err => res.status(500).json(err))
+}
 
-exports.create = function(req, res) {
-    const newAdmin = new Admin(req.body);
-    newAdmin.save((err, admin) => {
-        if (err || !admin)
-            return res.status(500).json(err);
-        res.json(admin);
-    });
-};
+exports.create = (req, res) => {
+  new Admin(req.body).save()
+    .then(admin => res.status(201).json(admin))
+    .catch(err => res.status(err.name === "ValidationError" ? 400 : 500).json(err))
+}
 
-exports.delete = function(req, res) {
-    Admin.remove({_id: req.params.id}, (err, admin) => {
-        if (err)
-            return res.status(500).json(err);
-        res.json({ message: "Admin supprimé" });
-    });
-};
+exports.delete = (req, res) => {
+  Admin.findByIdAndRemove(req.params.id)
+    .then(admin => {
+      if (!admin)
+        return res.status(404).send()
+      res.status(204).send()
+    })
+    .catch(err => res.status(500).json(err))
+}

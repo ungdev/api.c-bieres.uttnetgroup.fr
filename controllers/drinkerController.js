@@ -1,61 +1,56 @@
-const mongoose = require('mongoose');
-const Drinker = mongoose.model('Drinker');
-const Event = mongoose.model('Event');
-const eventHelper = require('../helpers/eventHelper');
+const mongoose = require('mongoose')
+const Drinker = mongoose.model('Drinker')
+const Event = mongoose.model('Event')
 
-function createDrinker(req, res, event) {
-    if (!event) res.status(404).json();
+const eventHelper = require('../helpers/eventHelper')
 
-    if (req.body.studentId == "") {
-        delete req.body.studentId;
-    }
+exports.get = (req, res) => {
+  let where = {}
 
-    const newDrinker = new Drinker(req.body);
-    newDrinker.save((err, drinker) => {
-        if (err) return res.status(500).json(err);
+  if (req.query.multifield) {
+    where['$or'] = [
+      { lastName: { $regex: new RegExp(req.query.multifield, 'i') } },
+      { firstName: { $regex: new RegExp(req.query.multifield, 'i') } }
+    ]
+  }
 
-        eventHelper.registerDrinker(event, drinker)
-            .then(results => res.json(results))
-            .catch(err => res.status(500).json(err));
-    });
+  if (req.query.event) {
+    where['events'] = { $ne: req.query.event }
+  }
+
+  Drinker.find(where)
+    .then(drinkers => res.json(drinkers))
+    .catch(err => res.status(500).json(err))
 }
 
-exports.create = function(req, res) {
-    // A Drinker is created on the registration for a futur event (by def)
-    if (req.body.eventId) {
-        Event.findOne({ _id: req.body.eventId, when: {$gt: new Date()} })
-            .then(event => {
-                createDrinker(req, res, event);
-            })
-            .catch(err => res.status(500).json(err));
-    } else {
-        eventHelper.getNextEvent()
-            .then(event => {
-                createDrinker(req, res, event);
-            })
-            .catch(err => res.status(500).json(err));
-    }
-};
+function createDrinker(req, res, event) {
+  if (!event)
+    return res.status(404).send()
+  if (req.body.studentId == "")
+    delete req.body.studentId
 
-exports.get = function(req, res) {
-    let where = {};
+  new Drinker(req.body).save()
+    .then(drinker => {
+      eventHelper.registerDrinker(event, drinker)
+        .then(drinker => res.status(201).json(drinker))
+        .catch(err => res.status(500).json(err))
+    })
+    .catch(err => res.status(err.name === "ValidationError" ? 400 : 500).json(err))
+}
 
-    if (req.query.multifield) {
-        where['$or'] = [
-            { lastName: { $regex: new RegExp(req.query.multifield, 'i') } },
-            { firstName: { $regex: new RegExp(req.query.multifield, 'i') } }
-        ]
-    }
-
-    if (req.query.event) {
-        where['events'] = { $ne: req.query.event };
-    }
-
-    Drinker.find(where, (err, drinkers) => {
-        if (err)
-            return res.status(500).json(err);
-
-        res.json(drinkers);
-    });
-
-};
+exports.create = (req, res) => {
+  if (req.body.eventId) {
+    Event.findById(req.body.eventId)
+      .then(event => {
+        if (new Date(event.when) < new Date()) {
+          return res.status(400).send()
+        }
+        createDrinker(req, res, event)
+      })
+      .catch(err => res.status(err.name === "CastError" ? 400 : 500).json(err))
+  } else {
+    eventHelper.getNextEvent()
+      .then(event => createDrinker(req, res, event))
+      .catch(err => res.status(500).json(err))
+  }
+}

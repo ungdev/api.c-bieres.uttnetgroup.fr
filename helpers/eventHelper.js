@@ -1,6 +1,6 @@
-const mongoose = require('mongoose');
-const Event = mongoose.model('Event');
-const Drinker = mongoose.model('Drinker');
+const mongoose = require('mongoose')
+const Event = mongoose.model('Event')
+const Drinker = mongoose.model('Drinker')
 
 /**
  * Make a request to find the next Event from now
@@ -10,14 +10,14 @@ const Drinker = mongoose.model('Drinker');
 function getNextEvent() {
   return new Promise((resolve, reject) => {
     // next event can be today ! So greater than yesterday
-    let yesterday = new Date();
-    yesterday.setTime(yesterday.getTime() - 24*60*60*1000);
+    let yesterday = new Date()
+    yesterday.setTime(yesterday.getTime() - 24*60*60*1000)
     Event.find({ when: {$gt: yesterday} }).populate('beers').sort({when: 'asc'}).limit(1).exec((err, events) => {
-        if (err)
-            reject(err);
-        resolve(events[0]);
-    });
-  });
+      if (err)
+        reject(err)
+      resolve(events[0])
+    })
+  })
 }
 
 /**
@@ -43,7 +43,7 @@ function registerDrinker(event, drinker) {
             drinker.save((err, savedDrinker) => {
                 if (err)
                     reject(err);
-                resolve({drinker, event});
+                resolve();
             });
         });
     });
@@ -71,7 +71,7 @@ function unregisterDrinker(event, drinker) {
       drinker.save((err, savedDrinker) => {
         if (err)
           reject(err)
-        resolve({event: savedEvent, drinker: savedDrinker})
+        resolve()
       })
     })
   })
