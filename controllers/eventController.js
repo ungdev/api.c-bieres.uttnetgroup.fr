@@ -152,7 +152,7 @@ exports.create = (req, res) => {
 
 exports.update = (req, res) => {
   Event.findByIdAndUpdate(req.params.id, req.body, {new: true, runValidators: true })
-    .then(_ => res.status(beer ? 204 : 404).send())
+    .then(event => res.status(event ? 204 : 404).send())
     .catch(err => res.status(err.name === "ValidationError" ? 400 : 500).json(err))
 }
 
