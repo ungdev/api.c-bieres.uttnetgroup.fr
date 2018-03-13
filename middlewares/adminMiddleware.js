@@ -7,6 +7,7 @@ module.exports = function(req, res, next) {
     (new RegExp('oauth').test(req.url))
     || (req.url === '/event/next' && req.method === 'GET')
     || (req.url.match('/event') && req.method === 'GET')
+    || (req.url.match('/event/register'))
   ) {
     return next()
   }
