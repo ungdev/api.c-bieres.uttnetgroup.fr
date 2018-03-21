@@ -15,6 +15,12 @@ const DrinkerSchema = new Schema({
         type: String,
         required: true
     },
+    email: {
+        type: String,
+        validate: (email) => {
+            return /^[a-zA-Z0-9.!#$%&’*+\/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)*$/.test(email)
+        }
+    },
     events: [{
         type: Schema.Types.ObjectId,
         ref: 'Event'

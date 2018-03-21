@@ -54,3 +54,30 @@ exports.create = (req, res) => {
       .catch(err => res.status(500).json(err))
   }
 }
+
+exports.updateEmails = (req, res) => {
+  // fetch all the drinkers and set default email
+  Drinker.find()
+    .then(drinkers => {
+      return drinkers.map(drinker => {
+        updateEmail(drinker)
+        return drinker.save()
+      })
+    })
+    .then(promises => Promise.all(promises))
+    .then(_ => res.json())
+    .catch(err => res.status(500).json(err))
+}
+
+function updateEmail(drinker) {
+  return new Promise((resolve, reject) => {
+    drinker.email = `${formatName(drinker.firstName)}.${formatName(drinker.lastName)}@utt.fr`
+    drinker.save()
+      .then(_ => resolve())
+      .catch(e => reject(e))
+  })
+}
+
+function formatName(name) {
+  return name.split(' ').join('_').toLowerCase()
+}
