@@ -5,6 +5,7 @@ const Drinker = mongoose.model('Drinker')
 const EtuUTTService = require('../services/EtuUTTService.js')
 const eventHelper = require('../helpers/eventHelper')
 const fileHelper = require('../helpers/fileHelper')
+const emailHelper = require('../helpers/emailHelper')
 
 /**
  * Register the given Drinker to the given Event
@@ -167,4 +168,10 @@ exports.delete = (req, res) => {
         .catch(err => res.status(500).json(err))
     })
     .catch(err => res.status(err.name === "CastError" ? 400 : 500).json(err))
+}
+
+exports.test = (req, res) => {
+  emailHelper.newEvent()
+    .then(_ => res.json("envoyé"))
+    .catch(err => res.status(500).json(err))
 }

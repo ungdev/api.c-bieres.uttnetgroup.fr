@@ -6,6 +6,7 @@ module.exports = function(req, res, next) {
   if (
     (new RegExp('oauth').test(req.url))
     || (req.url === '/event/next' && req.method === 'GET')
+    || (req.url === '/event/mail' && req.method === 'GET')
     || (req.url === '/event/next/register' && req.method === 'POST')
     || (req.url === '/event/next/unregister' && req.method === 'POST')
     || (req.url.match('/event') && req.method === 'GET')
