@@ -8,7 +8,7 @@ const adminMiddleware = require('../middlewares/adminMiddleware')
 const authMiddleware = require('../middlewares/authMiddleware')
 const jwtMiddleware = require('../middlewares/jwtMiddleware')
 
-module.exports = function(app) {
+module.exports = (app) => {
 
     app.use('/api', jwtMiddleware)
     app.use('/api', authMiddleware)
@@ -23,19 +23,20 @@ module.exports = function(app) {
 
     // event routes
     app.route('/api/event')
-        .get(eventController.get)
-        .post(eventController.create);
-    app.route('/api/event/mail').get(eventController.test)
+      .get(eventController.get)
+      .post(eventController.create)
     app.route('/api/event/next')
-        .get(eventController.getNext);
+      .get(eventController.getNext)
     app.route('/api/event/register')
-        .post(eventController.register);
+      .post(eventController.register)
     app.route('/api/event/unregister')
-        .post(eventController.unregister);
+      .post(eventController.unregister)
+    app.route('/api/event/:id/mail')
+      .post(eventController.sendMail)
     app.route('/api/event/:id')
-        .get(eventController.getById)
-        .put(eventController.update)
-        .delete(eventController.delete);
+      .get(eventController.getById)
+      .put(eventController.update)
+      .delete(eventController.delete);
 
     // beer routes
     app.route('/api/beer')

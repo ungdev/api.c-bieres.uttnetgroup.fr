@@ -170,7 +170,7 @@ exports.delete = (req, res) => {
     .catch(err => res.status(err.name === "CastError" ? 400 : 500).json(err))
 }
 
-exports.test = (req, res) => {
+exports.sendMail = (req, res) => {
   emailHelper.newEvent()
     .then(_ => res.json("envoyé"))
     .catch(err => res.status(500).json(err))

@@ -1,28 +1,27 @@
-const Email = require('email-templates')
+const nodemailer = require('nodemailer')
+const mongoose = require('mongoose')
+const Drinker = mongoose.model('Drinker')
 
 const newEvent = () => {
-  const email = new Email({
-    message: {
-      from: process.env.EMAIL_SENDER
-    },
-    // uncomment below to send emails in development/test env:
-    // send: true,
-    transport: {
-      jsonTransport: true
-    }
-  })
+  return Drinker.find({ newsletters: { $ne: false } })
+    .then(drinkers => {
+      const socks = process.env.EMAIL_SOCKS
+      const username = process.env.EMAIL_USERNAME
+      const password = process.env.EMAIL_PASSWORD
+      const hostname = process.env.EMAIL_HOSTNAME
+      const port = process.env.EMAIL_PORT
+      let transporter = nodemailer.createTransport(`${socks}://${username}:${password}@${hostname}`)
 
-  const emailData = {
-    template: 'newEvent',
-    message: {
-      to: 'antoineprudhomme5@gmail.com'
-    },
-    locals: {
-      name: 'Antoine'
-    }
-  }
+      const mailOptions = {
+        from: '"C bieres 👥" <antoineprudhomme5@gmail.com>',
+        to: 'antoineprudhomme5@gmail.com',
+        subject: 'Prochaine dégustation',
+        text: 'Hello world 🐴',
+        html: '<b>Hello world 🐴</b>'
+      }
 
-  return email.send(emailData)
+      return transporter.sendMail(mailOptions)
+    })
 }
 
 module.exports = { newEvent }
