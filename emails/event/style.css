@@ -1,0 +1,21 @@
+* {
+  color: #333;
+  font-size: 1em;
+}
+
+h1 {
+  font-family: "Great Vibes";
+  font-size: 1.5em;
+  margin-bottom: 0;
+}
+
+.header, .body {
+  padding: 10px 20px;
+}
+
+.body {
+  background: #eee;
+}
+
+.logo {
+}
