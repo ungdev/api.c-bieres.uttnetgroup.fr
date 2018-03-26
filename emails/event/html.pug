@@ -1,11 +1,20 @@
+doctype html
 html
   head
     style
       include style.css
   body
-    p.header
-      h1 Club bières
-    p.body
-      div Wesh alors 
-      img(src="cid:logo")
-      
+    h1.title Club Bières
+    img(class='logo' src='cid:logo')
+    <div class="body">
+      <p>
+        .bold Nouvelle Dégustation !
+        .text.date le <b>#{event.humanDate}</b>
+      </p>
+      .separator
+      <p>
+        .bold Inscris-toi dès maintenant
+        .text et consulte la liste des bières qu'il y aura à déguster !
+      </p>
+      a(class='button' href=clientURI) JE M'INSCRIS
+    </div>

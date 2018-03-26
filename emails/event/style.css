@@ -1,21 +1,67 @@
 * {
-  color: #333;
-  font-size: 1em;
+  color: #555555;
+  font-size: 20px;
+  line-height: 28px;
+  font-family: "Arial, Helvetica, sans-serif";
 }
 
-h1 {
-  font-family: "Great Vibes";
-  font-size: 1.5em;
-  margin-bottom: 0;
+.text, .title, .bold {
+  text-align: center;
+}
+
+.title {
+  color: #333333;
+  font-size: 40px;
+  line-height: 48px;
+  text-transform: uppercase;
+  margin-bottom: 25px;
+  padding: 8px;
+  border-top: 1px solid #333;
+  border-bottom: 1px solid #333;
+}
+
+.separator {
+  height: 1px;
+  width: 30%;
+  margin-left: auto;
+  margin-right: auto;
+  background-color: #333333;
+}
+
+.bold {
+  font-size: 30px;
+  line-height: 36px;
 }
 
 .header, .body {
   padding: 10px 20px;
 }
 
-.body {
-  background: #eee;
+.button {
+  border: none;
+  padding: 15px 32px;
+  text-align: center;
+  text-decoration: none;
+  display: inline-block;
+  font-size: 16px;
+  font-weight: 700;
+  border-radius: 4px;
+}
+.button:hover {
+  cursor: pointer;
+}
+
+.button {
+  background-color: #007bff;
+  color: white;
 }
 
 .logo {
+  width: 100px;
+  height: 100px;
+}
+
+.button, .logo, h1 {
+  display: table;
+  margin: auto;
 }

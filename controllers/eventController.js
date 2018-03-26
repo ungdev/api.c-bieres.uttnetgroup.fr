@@ -158,7 +158,7 @@ exports.update = (req, res) => {
 }
 
 exports.delete = (req, res) => {
-  Event.findById({_id: req.params.id}).populate('beers')
+  Event.findById(req.params.id).populate('beers')
     .then(event => {
       if (!event)
         return res.status(404).send()
@@ -171,7 +171,8 @@ exports.delete = (req, res) => {
 }
 
 exports.sendMail = (req, res) => {
-  emailHelper.newEvent()
+  Event.findById(req.body.eventId)
+    .then(event => emailHelper.newEvent(event))
     .then(_ => res.json("envoyé"))
     .catch(err => res.status(500).json(err))
 }

@@ -1,6 +1,6 @@
 const path = require('path')
 const nodemailer = require('nodemailer')
-const Email = require('email-templates');
+const Email = require('email-templates')
 const mongoose = require('mongoose')
 const Drinker = mongoose.model('Drinker')
 
@@ -12,10 +12,13 @@ const newEvent = (event) => {
 
       const email = new Email()
 
+      // transform timestamp to human readable date
+      const date = new Date(event.when)
+      event.humanDate = `${date.getUTCDate()} / ${date.getMonth()}`
+
       email
-      .renderAll('event', { event, logoURI: process.env.LOGO_URI })
+      .renderAll('event', { event, clientURI: process.env.CLIENT_URI })
       .then(data => {
-        console.log(data)
         const socks = process.env.EMAIL_SOCKS
         const username = process.env.EMAIL_USERNAME
         const password = process.env.EMAIL_PASSWORD
