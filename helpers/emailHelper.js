@@ -27,9 +27,9 @@ const newEvent = (event) => {
         let transport = nodemailer.createTransport(`${socks}://${username}:${password}@${hostname}`)
 
         const mailOptions = {
-          from: '"C bieres 👥" <antoineprudhomme5@gmail.com>',
-          to: 'antoineprudhomme5@gmail.com',
-          subject: 'Prochaine dégustation',
+          from: `Club Bieres <${process.env.EMAIL_SENDER}>`,
+          to: 'antoineprudhomme5@gmail.com, antoine.prudhomme@utt.fr',
+          subject: 'prochaine dégustation',
           html: data.html,
           attachments: [{
             filename: 'logo.png',
