@@ -65,3 +65,11 @@
   display: table;
   margin: auto;
 }
+
+.maillist {
+  font-size: 12px;
+}
+
+.maillist a {
+  color: #007bff;
+}

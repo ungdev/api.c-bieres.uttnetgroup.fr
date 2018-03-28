@@ -17,7 +17,11 @@ const newEvent = (event) => {
       event.humanDate = `${date.getUTCDate()} / ${date.getMonth()}`
 
       email
-      .renderAll('event', { event, clientURI: process.env.CLIENT_URI })
+      .renderAll('event', {
+        event,
+        clientURI: process.env.CLIENT_URI,
+        mailListUri: `${process.env.CLIENT_URI}/maillist`
+      })
       .then(data => {
         const socks = process.env.EMAIL_SOCKS
         const username = process.env.EMAIL_USERNAME
