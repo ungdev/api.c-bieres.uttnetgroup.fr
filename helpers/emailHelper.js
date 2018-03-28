@@ -7,7 +7,7 @@ const Drinker = mongoose.model('Drinker')
 const templatesDir = path.resolve(__dirname, '..', 'emails')
 
 const newEvent = (event) => {
-  return Drinker.find({ newsletters: { $ne: false } })
+  return Drinker.find({ inMailList: { $ne: false } })
     .then(drinkers => {
 
       const email = new Email()
@@ -32,7 +32,7 @@ const newEvent = (event) => {
 
         const mailOptions = {
           from: `Club Bieres <${process.env.EMAIL_SENDER}>`,
-          to: 'antoineprudhomme5@gmail.com, antoine.prudhomme@utt.fr',
+          to: drinkers.map(drinker => drinker.email).join(', '),
           subject: 'prochaine dégustation',
           html: data.html,
           attachments: [{
