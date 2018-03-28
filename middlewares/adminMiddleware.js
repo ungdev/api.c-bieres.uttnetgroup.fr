@@ -1,5 +1,3 @@
-const jwtHelper = require('../helpers/jwtHelper');
-
 module.exports = function(req, res, next) {
 
   // this middleware should not be applied to the following routes:

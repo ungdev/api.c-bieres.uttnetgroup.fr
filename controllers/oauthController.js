@@ -59,3 +59,17 @@ exports.callback = (req, res) => {
   })
   .catch(error => res.status(500).json({ message: "An error occurs during communications with the api of EtuUTT: " + error}))
 }
+
+exports.getAccount = (req, res) => {
+  Drinker.findById(req.payload.id)
+    .then(drinker => res.json(drinker))
+    .catch(err => res.status(500).json(err))
+}
+
+exports.updateAccount = (req, res) => {
+  if (req.payload.id != req.body.account._id) return res.status(403).json()
+
+  Drinker.findByIdAndUpdate(req.payload.id, req.body.account, {new: true, runValidators: true })
+    .then(event => res.status(204).send())
+    .catch(err => res.status(err.name === "ValidationError" ? 400 : 500).json(err))
+}
