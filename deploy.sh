@@ -1,6 +1,6 @@
 #!/bin/bash
 DOKKU_HOST=ung.utt.fr
-DOKKU_PROD=api.c-bieres.uttnetgroup.fr
+DOKKU_PROD=api.c-bieres.utt.fr
 
 if [[ -n $key ]] ; then
     # Set up ssh key
