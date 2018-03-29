@@ -4,12 +4,9 @@ const Email = require('email-templates')
 const mongoose = require('mongoose')
 const Drinker = mongoose.model('Drinker')
 
-const templatesDir = path.resolve(__dirname, '..', 'emails')
-
 const newEvent = (event) => {
   return Drinker.find({ inMailList: { $ne: false } })
     .then(drinkers => {
-
       const email = new Email()
 
       // transform timestamp to human readable date
@@ -23,12 +20,15 @@ const newEvent = (event) => {
         mailListUri: `${process.env.CLIENT_URI}/maillist`
       })
       .then(data => {
-        const socks = process.env.EMAIL_SOCKS
-        const username = process.env.EMAIL_USERNAME
-        const password = process.env.EMAIL_PASSWORD
         const hostname = process.env.EMAIL_HOSTNAME
         const port = process.env.EMAIL_PORT
-        let transport = nodemailer.createTransport(`${socks}://${username}:${password}@${hostname}`)
+
+        let smtpConfig = {
+          host: hostname,
+          port,
+          secure: false
+        }
+        let transport = nodemailer.createTransport(smtpConfig)
 
         const mailOptions = {
           from: `Club Bieres <${process.env.EMAIL_SENDER}>`,
@@ -42,8 +42,8 @@ const newEvent = (event) => {
           }]
         }
         return transport.sendMail(mailOptions)
-   })
- })
+      })
+    })
 }
 
 module.exports = { newEvent }
