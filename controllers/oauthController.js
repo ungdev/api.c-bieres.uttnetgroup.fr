@@ -7,7 +7,7 @@ const jwtHelper = require('../helpers/jwtHelper')
 
 const _returnJWT = (res, etuUTTUser, drinker, tokenObj, created) => {
   Admin.findOne({ login: etuUTTUser.data.login })
-    .then(admin => res.status(created ? 201 : 200).json(jwtHelper.sign(drinker, tokenObj.access_token, admin || etuUTTUser.data.studentId == process.env.DEFAULT_ADMIN)))
+    .then(admin => res.status(created ? 201 : 200).json(jwtHelper.sign(drinker, tokenObj.access_token, !!admin || etuUTTUser.data.studentId == process.env.DEFAULT_ADMIN)))
     .catch(err => res.status(500).json(err))
 }
 
