@@ -22,6 +22,7 @@ exports.getById = (req, res) => {
 
 exports.create = (req, res) => {
   // save the uploaded image if uploaded
+  console.log('Create function called')
   fileHelper.saveUploadedBeerImage(req.file)
     .then(filename => {
       const newBeer = new Beer(req.body)
