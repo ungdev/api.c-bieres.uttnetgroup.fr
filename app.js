@@ -15,7 +15,7 @@ const bodyParser = require('body-parser');
 
 // connect to BDD
 mongoose.Promise = global.Promise;
-mongoose.connect(`mongodb://${process.env.DB_HOST}/${process.env.DB_NAME}`);
+mongoose.connect(`mongodb://${process.env.DB_USER}:${process.env.DB_PASSWORD}@${process.env.DB_HOST}/${process.env.DB_NAME}`);
 
 // configure upload path
 const storage = multer.diskStorage({
